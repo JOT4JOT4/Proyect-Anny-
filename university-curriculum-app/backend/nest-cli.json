@@ -1,0 +1,8 @@
+{
+  "collection": "apps",
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "assets": ["**/*.hbs"],
+    "watchAssets": true
+  }
+}

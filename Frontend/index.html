@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malla Curricular - Universidad</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        .subject-card {
+            transition: all 0.3s ease;
+        }
+        .subject-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .approved {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        .failed {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+        .pending {
+            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+            color: #374151;
+        }
+        .semester-column {
+            min-height: 600px;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-lg border-b-4 border-blue-600">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-xl font-bold text-blue-600">🎓 Universidad</h1>
+                    </div>
+                    <div class="hidden md:block">
+                        <span class="text-gray-700 font-medium">Malla Curricular - Ingeniería</span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Búsqueda -->
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="searchInput"
+                            placeholder="Buscar materia..."
+                            class="w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <!-- Usuario -->
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                            <span class="text-white font-semibold text-sm">JD</span>
+                        </div>
+                        <span class="text-gray-700 font-medium">Juan Díaz</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Filtros y Controles -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-4">
+                    <h2 class="text-lg font-semibold text-gray-800">Filtros:</h2>
+                    <select id="statusFilter" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+                        <option value="all">Todas las materias</option>
+                        <option value="approved">Aprobadas</option>
+                        <option value="failed">Reprobadas</option>
+                        <option value="pending">Pendientes</option>
+                    </select>
+                    <select id="semesterFilter" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+                        <option value="all">Todos los semestres</option>
+                        <option value="1">Semestre 1</option>
+                        <option value="2">Semestre 2</option>
+                        <option value="3">Semestre 3</option>
+                        <option value="4">Semestre 4</option>
+                        <option value="5">Semestre 5</option>
+                        <option value="6">Semestre 6</option>
+                        <option value="7">Semestre 7</option>
+                        <option value="8">Semestre 8</option>
+                    </select>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                        ⚙️ Ajustar Malla
+                    </button>
+                    <button class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+                        📊 Estadísticas
+                    </button>
+                    <button class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
+                        📄 Exportar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas Rápidas -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-lg shadow-md p-4 text-center">
+                <div class="text-2xl font-bold text-green-600" id="approvedCount">0</div>
+                <div class="text-sm text-gray-600">Aprobadas</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-4 text-center">
+                <div class="text-2xl font-bold text-red-600" id="failedCount">0</div>
+                <div class="text-sm text-gray-600">Reprobadas</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-4 text-center">
+                <div class="text-2xl font-bold text-gray-600" id="pendingCount">0</div>
+                <div class="text-sm text-gray-600">Pendientes</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-4 text-center">
+                <div class="text-2xl font-bold text-blue-600" id="progressPercent">0%</div>
+                <div class="text-sm text-gray-600">Progreso</div>
+            </div>
+        </div>
+
+        <!-- Malla Curricular -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Malla Curricular - Ingeniería en Sistemas</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-8 gap-4" id="curriculumGrid">
+                <!-- Los semestres se generarán dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos de la malla curricular
+        const curriculum = {
+            1: [
+                { id: 'mat1', name: 'Matemáticas I', credits: 6, status: 'approved' },
+                { id: 'fis1', name: 'Física I', credits: 5, status: 'approved' },
+                { id: 'prog1', name: 'Programación I', credits: 6, status: 'approved' },
+                { id: 'ing1', name: 'Inglés I', credits: 3, status: 'approved' },
+                { id: 'com1', name: 'Comunicación', credits: 4, status: 'pending' }
+            ],
+            2: [
+                { id: 'mat2', name: 'Matemáticas II', credits: 6, status: 'approved' },
+                { id: 'fis2', name: 'Física II', credits: 5, status: 'failed' },
+                { id: 'prog2', name: 'Programación II', credits: 6, status: 'approved' },
+                { id: 'ing2', name: 'Inglés II', credits: 3, status: 'pending' },
+                { id: 'est1', name: 'Estadística I', credits: 4, status: 'pending' }
+            ],
+            3: [
+                { id: 'mat3', name: 'Matemáticas III', credits: 6, status: 'pending' },
+                { id: 'estr1', name: 'Estructuras de Datos', credits: 6, status: 'pending' },
+                { id: 'bd1', name: 'Base de Datos I', credits: 5, status: 'pending' },
+                { id: 'ing3', name: 'Inglés III', credits: 3, status: 'pending' },
+                { id: 'eco1', name: 'Economía', credits: 4, status: 'pending' }
+            ],
+            4: [
+                { id: 'alg1', name: 'Algoritmos', credits: 6, status: 'pending' },
+                { id: 'bd2', name: 'Base de Datos II', credits: 5, status: 'pending' },
+                { id: 'so1', name: 'Sistemas Operativos', credits: 6, status: 'pending' },
+                { id: 'ing4', name: 'Inglés IV', credits: 3, status: 'pending' },
+                { id: 'cont1', name: 'Contabilidad', credits: 4, status: 'pending' }
+            ],
+            5: [
+                { id: 'red1', name: 'Redes I', credits: 5, status: 'pending' },
+                { id: 'web1', name: 'Desarrollo Web', credits: 6, status: 'pending' },
+                { id: 'ia1', name: 'Inteligencia Artificial', credits: 6, status: 'pending' },
+                { id: 'eti1', name: 'Ética Profesional', credits: 3, status: 'pending' },
+                { id: 'ges1', name: 'Gestión de Proyectos', credits: 4, status: 'pending' }
+            ],
+            6: [
+                { id: 'red2', name: 'Redes II', credits: 5, status: 'pending' },
+                { id: 'seg1', name: 'Seguridad Informática', credits: 6, status: 'pending' },
+                { id: 'mov1', name: 'Desarrollo Móvil', credits: 6, status: 'pending' },
+                { id: 'inv1', name: 'Investigación', credits: 3, status: 'pending' },
+                { id: 'emp1', name: 'Emprendimiento', credits: 4, status: 'pending' }
+            ],
+            7: [
+                { id: 'arq1', name: 'Arquitectura de Software', credits: 6, status: 'pending' },
+                { id: 'cloud1', name: 'Computación en la Nube', credits: 5, status: 'pending' },
+                { id: 'elect1', name: 'Electivo I', credits: 4, status: 'pending' },
+                { id: 'sem1', name: 'Seminario de Título I', credits: 6, status: 'pending' },
+                { id: 'prac1', name: 'Práctica Profesional', credits: 3, status: 'pending' }
+            ],
+            8: [
+                { id: 'elect2', name: 'Electivo II', credits: 4, status: 'pending' },
+                { id: 'elect3', name: 'Electivo III', credits: 4, status: 'pending' },
+                { id: 'sem2', name: 'Seminario de Título II', credits: 8, status: 'pending' },
+                { id: 'tesis1', name: 'Trabajo de Título', credits: 8, status: 'pending' }
+            ]
+        };
+
+        let filteredCurriculum = { ...curriculum };
+
+        function renderCurriculum() {
+            const grid = document.getElementById('curriculumGrid');
+            grid.innerHTML = '';
+
+            for (let semester = 1; semester <= 8; semester++) {
+                const semesterDiv = document.createElement('div');
+                semesterDiv.className = 'semester-column bg-gray-50 rounded-lg p-4';
+                semesterDiv.innerHTML = `
+                    <h3 class="text-lg font-bold text-center mb-4 text-blue-700 border-b-2 border-blue-200 pb-2">
+                        Semestre ${semester}
+                    </h3>
+                `;
+
+                const subjects = filteredCurriculum[semester] || [];
+                subjects.forEach(subject => {
+                    const subjectDiv = document.createElement('div');
+                    subjectDiv.className = `subject-card p-3 rounded-lg mb-3 cursor-pointer border-2 border-transparent ${getStatusClass(subject.status)}`;
+                    subjectDiv.innerHTML = `
+                        <div class="font-semibold text-sm mb-1">${subject.name}</div>
+                        <div class="text-xs opacity-80">${subject.credits} créditos</div>
+                        <div class="text-xs mt-2 font-medium">${getStatusText(subject.status)}</div>
+                    `;
+                    
+                    subjectDiv.addEventListener('click', () => toggleSubjectStatus(subject.id, semester));
+                    semesterDiv.appendChild(subjectDiv);
+                });
+
+                grid.appendChild(semesterDiv);
+            }
+
+            updateStatistics();
+        }
+
+        function getStatusClass(status) {
+            switch (status) {
+                case 'approved': return 'approved';
+                case 'failed': return 'failed';
+                default: return 'pending';
+            }
+        }
+
+        function getStatusText(status) {
+            switch (status) {
+                case 'approved': return '✅ Aprobada';
+                case 'failed': return '❌ Reprobada';
+                default: return '⏳ Pendiente';
+            }
+        }
+
+        function toggleSubjectStatus(subjectId, semester) {
+            const subject = curriculum[semester].find(s => s.id === subjectId);
+            if (subject) {
+                if (subject.status === 'pending') {
+                    subject.status = 'approved';
+                } else if (subject.status === 'approved') {
+                    subject.status = 'failed';
+                } else {
+                    subject.status = 'pending';
+                }
+                applyFilters();
+            }
+        }
+
+        function updateStatistics() {
+            let approved = 0, failed = 0, pending = 0, total = 0;
+
+            Object.values(curriculum).forEach(semester => {
+                semester.forEach(subject => {
+                    total++;
+                    switch (subject.status) {
+                        case 'approved': approved++; break;
+                        case 'failed': failed++; break;
+                        default: pending++; break;
+                    }
+                });
+            });
+
+            document.getElementById('approvedCount').textContent = approved;
+            document.getElementById('failedCount').textContent = failed;
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('progressPercent').textContent = Math.round((approved / total) * 100) + '%';
+        }
+
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const semesterFilter = document.getElementById('semesterFilter').value;
+
+            filteredCurriculum = {};
+
+            Object.keys(curriculum).forEach(semester => {
+                if (semesterFilter === 'all' || semesterFilter === semester) {
+                    filteredCurriculum[semester] = curriculum[semester].filter(subject => {
+                        const matchesSearch = subject.name.toLowerCase().includes(searchTerm);
+                        const matchesStatus = statusFilter === 'all' || subject.status === statusFilter;
+                        return matchesSearch && matchesStatus;
+                    });
+                }
+            });
+
+            renderCurriculum();
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        document.getElementById('statusFilter').addEventListener('change', applyFilters);
+        document.getElementById('semesterFilter').addEventListener('change', applyFilters);
+
+        // Inicializar
+        renderCurriculum();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98adddf53561b528',t:'MTc1OTg0NTAyMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
