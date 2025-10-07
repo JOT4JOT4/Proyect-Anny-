@@ -1,18 +1,8 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import Curriculum from './components/Curriculum';
+import React from "react";
+import Login from "./components/Login";
 
-const App: React.FC = () => {
-  return (
-    <Router>
-      <Switch>
-        <Route path="/" exact>
-          <h1>Welcome to the University Curriculum App</h1>
-        </Route>
-        <Route path="/curriculum" component={Curriculum} />
-      </Switch>
-    </Router>
-  );
-};
+function App() {
+  return <Login />;
+}
 
 export default App;

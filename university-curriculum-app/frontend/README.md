@@ -1,69 +1,73 @@
-# University Curriculum App
+# React + TypeScript + Vite
 
-This project is a full-stack application designed to manage university curricula. It consists of a backend built with NestJS and a frontend built with React and Vite.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Project Structure
+Currently, two official plugins are available:
 
-The project is organized into two main directories: `backend` and `frontend`.
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-### Backend
+## React Compiler
 
-The backend is built using NestJS and includes the following components:
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-- **src/app.controller.ts**: Handles incoming requests and returns responses.
-- **src/app.module.ts**: The root module of the application, importing other modules.
-- **src/app.service.ts**: Contains business logic and data handling.
-- **src/curriculum**: Manages curriculum-related functionality.
-  - **curriculum.controller.ts**: Manages requests related to the curriculum.
-  - **curriculum.module.ts**: Encapsulates curriculum-related components.
-  - **curriculum.service.ts**: Contains logic for managing curriculum data.
-- **src/main.ts**: Entry point of the backend application.
-- **package.json**: Configuration file for npm, listing dependencies and scripts.
-- **nest-cli.json**: Configuration settings for the NestJS CLI.
-- **tsconfig.json**: TypeScript configuration file.
+## Expanding the ESLint configuration
 
-### Frontend
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-The frontend is built using React and Vite and includes the following components:
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-- **src/App.tsx**: Main component of the React application.
-- **src/main.tsx**: Entry point of the frontend application.
-- **src/components/Curriculum.tsx**: Displays curriculum-related information.
-- **src/types/index.ts**: TypeScript interfaces and types used throughout the frontend.
-- **index.html**: Main HTML file for the frontend application.
-- **package.json**: Configuration file for npm, listing dependencies and scripts.
-- **tsconfig.json**: TypeScript configuration file.
-- **vite.config.ts**: Configuration settings for Vite.
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
 
-## Getting Started
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```
 
-To get started with the project, follow these steps:
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-1. Clone the repository.
-2. Navigate to the `backend` directory and install dependencies:
-   ```
-   cd backend
-   npm install
-   ```
-3. Start the backend server:
-   ```
-   npm run start
-   ```
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-4. Open a new terminal, navigate to the `frontend` directory, and install dependencies:
-   ```
-   cd frontend
-   npm install
-   ```
-5. Start the frontend development server:
-   ```
-   npm run dev
-   ```
-
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request for any improvements or features.
-
-## License
-
-This project is licensed under the MIT License.
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```

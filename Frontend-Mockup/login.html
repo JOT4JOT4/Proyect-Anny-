@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso - Universidad</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body class="body-bg">
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="header-left">
+                <div class="header-logo">
+                    <span class="header-logo-icon">🎓</span>
+                </div>
+                <div>
+                    <h1 class="header-title">Universidad</h1>
+                    <p class="header-subtitle">Portal Académico</p>
+                </div>
+            </div>
+            <div class="header-links">
+                <a href="#">Ayuda</a>
+                <a href="#">Soporte Técnico</a>
+                <a href="#">Contacto</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <div class="main-content">
+            <!-- Logo y Título -->
+            <div class="logo-title">
+                <div class="logo-circle">
+                    <svg class="logo-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                </div>
+                <h2 class="main-title">Acceso al Portal</h2>
+                <p class="main-desc">Ingresa con tu correo institucional</p>
+            </div>
+
+            <!-- Formulario de Login -->
+            <div class="login-card">
+                <form class="login-form" id="loginForm">
+                    <!-- Campo de Email -->
+                    <div class="input-group">
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            required
+                            placeholder=" "
+                            class="input"
+                        >
+                        <label for="email" class="floating-label">Correo Institucional</label>
+                        <div class="input-icon">
+                            <svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Campo de Contraseña -->
+                    <div class="input-group">
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            required
+                            placeholder=" "
+                            class="input"
+                        >
+                        <label for="password" class="floating-label">Contraseña</label>
+                        <div class="input-icon">
+                            <button type="button" id="togglePassword" class="toggle-password">
+                                <svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" id="eyeIcon">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Recordar sesión -->
+                    <div class="remember-row">
+                        <div class="remember-left">
+                            <input
+                                id="remember"
+                                name="remember"
+                                type="checkbox"
+                                class="checkbox"
+                            >
+                            <label for="remember" class="remember-label">
+                                Recordar sesión
+                            </label>
+                        </div>
+                        <div class="remember-right">
+                            <a href="#">¿Olvidaste tu contraseña?</a>
+                        </div>
+                    </div>
+
+                    <!-- Botón de Iniciar Sesión -->
+                    <div>
+                        <button
+                            type="submit"
+                            class="btn-primary"
+                        >
+                            <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                            </svg>
+                            Iniciar Sesión
+                        </button>
+                    </div>
+
+                    <!-- Mensaje de estado -->
+                    <div id="statusMessage" class="status-message hidden"></div>
+                </form>
+
+                <!-- Enlaces adicionales -->
+                <div class="extra-links">
+                    <p>
+                        ¿Problemas para acceder?
+                        <a href="#">Contacta al administrador</a>
+                    </p>
+                    <p class="extra-info">
+                        Para estudiantes nuevos: Tu usuario es tu RUT y tu contraseña inicial es tu fecha de nacimiento (DDMMAAAA)
+                    </p>
+                </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="quick-access">
+                <h3>Acceso Rápido</h3>
+                <div class="quick-links">
+                    <a href="#">📚 Biblioteca Virtual</a>
+                    <a href="#">💳 Portal de Pagos</a>
+                    <a href="#">📧 Correo Estudiantil</a>
+                    <a href="#">📅 Calendario Académico</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2024 Universidad. Todos los derechos reservados.</p>
+            <p>Sistema Académico v2.1 | Soporte: soporte@universidad.edu</p>
+        </div>
+    </footer>
+
+    <script>
+        // Toggle password visibility
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+                `;
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                `;
+            }
+        });
+
+        // Form submission
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const statusMessage = document.getElementById('statusMessage');
+            
+            // Simulate login process
+            statusMessage.className = 'status-message';
+            statusMessage.textContent = 'Verificando credenciales...';
+            statusMessage.classList.remove('hidden');
+            
+            setTimeout(() => {
+                if (email.includes('@universidad.edu') && password.length >= 6) {
+                    statusMessage.className = 'status-message status-success';
+                    statusMessage.textContent = '✅ Acceso exitoso. Redirigiendo...';
+                    
+                    setTimeout(() => {
+                        statusMessage.className = 'status-message';
+                        statusMessage.textContent = '🎓 Bienvenido al portal académico. En un sistema real, serías redirigido a la malla curricular.';
+                    }, 1500);
+                } else {
+                    statusMessage.className = 'status-message status-error';
+                    statusMessage.textContent = '❌ Credenciales incorrectas. Verifica tu correo institucional y contraseña.';
+                }
+            }, 1500);
+        });
+
+        // Email validation
+        document.getElementById('email').addEventListener('blur', function() {
+            const email = this.value;
+            if (email && !email.includes('@universidad.edu')) {
+                this.style.borderColor = '#ef4444';
+                this.style.backgroundColor = '#fef2f2';
+            } else {
+                this.style.borderColor = '#d1d5db';
+                this.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+            }
+        });
+    </script>
+</body>
+</html>
