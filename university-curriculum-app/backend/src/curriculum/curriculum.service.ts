@@ -66,7 +66,7 @@ export class CurriculumService {
 
     async getCombinedCurriculum(email: string, password: string) {
         try {
-        // 1. Login para obtener los datos del usuario
+        // usar en el login
         const loginUrl = `https://puclaro.ucn.cl/eross/avance/login.php?email=${email}&password=${password}`;
         const { data: usuario } = await firstValueFrom(this.httpService.get<Usuario>(loginUrl));
         
@@ -79,7 +79,7 @@ export class CurriculumService {
             throw new Error('El usuario no tiene carreras asignadas.');
         }
 
-        // 2. Obtener la malla y el avance en paralelo
+        // malla y el avance 
         const mallaUrl = `https://losvilos.ucn.cl/hawaii/api/mallas?${primeraCarrera.codigo}-${primeraCarrera.catalogo}`;
         const avanceUrl = `https://puclaro.ucn.cl/eross/avance/avance.php?rut=${usuario.rut}&codcarrera=${primeraCarrera.codigo}`;
 
@@ -93,7 +93,6 @@ export class CurriculumService {
         const mallaBase = mallaResponse.data;
         const avanceAlumno = avanceResponse.data;
 
-        // 3. Cruzar los datos y devolver el resultado final
         const mallaConAvance = mallaBase.map((asignatura) => {
             const avanceCorrespondiente = avanceAlumno.find(
             (avance) => avance.course === asignatura.codigo
