@@ -1,4 +1,32 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+
+interface Carrera {
+  codigo: string;
+  nombre: string;
+  catalogo: string;
+}
+
+interface Usuario {
+  rut: string;
+  carreras: Carrera[];
+}
+
+interface Asignatura {
+  codigo: string;
+  asignatura: string;
+  creditos: number;
+  nivel: number;
+  prereq: string;
+}
+
+interface AvanceAsignatura {
+  course: string;
+  status: 'APROBADO' | 'REPROBADO' | string;
+}
+
+const HAWAII_AUTH_TOKEN = 'jf400fejof13f';
 
 @Injectable()
 export class CurriculumService {
@@ -32,5 +60,58 @@ export class CurriculumService {
             return this.curriculums.splice(index, 1);
         }
         return null;
+    }
+
+    constructor(private readonly httpService: HttpService) {}
+
+    async getCombinedCurriculum(email: string, password: string) {
+        try {
+        // 1. Login para obtener los datos del usuario
+        const loginUrl = `https://puclaro.ucn.cl/eross/avance/login.php?email=${email}&password=${password}`;
+        const { data: usuario } = await firstValueFrom(this.httpService.get<Usuario>(loginUrl));
+        
+        if (!usuario.rut) {
+            throw new UnauthorizedException('Credenciales incorrectas');
+        }
+        
+        const primeraCarrera = usuario.carreras[0];
+        if (!primeraCarrera) {
+            throw new Error('El usuario no tiene carreras asignadas.');
+        }
+
+        // 2. Obtener la malla y el avance en paralelo
+        const mallaUrl = `https://losvilos.ucn.cl/hawaii/api/mallas?${primeraCarrera.codigo}-${primeraCarrera.catalogo}`;
+        const avanceUrl = `https://puclaro.ucn.cl/eross/avance/avance.php?rut=${usuario.rut}&codcarrera=${primeraCarrera.codigo}`;
+
+        const [mallaResponse, avanceResponse] = await Promise.all([
+            firstValueFrom(this.httpService.get<Asignatura[]>(mallaUrl, {
+            headers: { 'X-HAWAII-AUTH': HAWAII_AUTH_TOKEN },
+            })),
+            firstValueFrom(this.httpService.get<AvanceAsignatura[]>(avanceUrl)),
+        ]);
+
+        const mallaBase = mallaResponse.data;
+        const avanceAlumno = avanceResponse.data;
+
+        // 3. Cruzar los datos y devolver el resultado final
+        const mallaConAvance = mallaBase.map((asignatura) => {
+            const avanceCorrespondiente = avanceAlumno.find(
+            (avance) => avance.course === asignatura.codigo
+            );
+            return {
+            ...asignatura,
+            estado: avanceCorrespondiente?.status === 'APROBADO' ? 'APROBADO' : 'PENDIENTE',
+            };
+        });
+
+        return mallaConAvance;
+
+        } catch (error) {
+        console.error('Error fetching curriculum data:', error.message);
+        if (error instanceof UnauthorizedException) {
+            throw error;
+        }
+        throw new InternalServerErrorException('Error al obtener los datos curriculares');
+        }
     }
 }
