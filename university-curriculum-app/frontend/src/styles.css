@@ -1,0 +1,22 @@
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans','Apple Color Emoji','Segoe UI Emoji'}:root{--ok:#16a34a;--bad:#dc2626;--pending:#6b7280;--bg:#f8fafc;--card:#ffffff;--border:#e5e7eb}
+.app{min-height:100vh;background:linear-gradient(135deg,#eff6ff,#eef2ff);padding:24px}
+.container{max-width:1200px;margin:0 auto}
+.nav{background:#fff;border-bottom:4px solid #2563eb;box-shadow:0 2px 6px rgba(0,0,0,.05);border-radius:16px;padding:16px 24px;margin-bottom:16px;display:flex;gap:12px;align-items:center;justify-content:space-between}
+.brand{font-weight:700;font-size:20px;color:#111827}
+.summary{display:flex;gap:8px;flex-wrap:wrap}
+.tag{border-radius:999px;padding:6px 12px;border:1px solid var(--border);background:#fff;font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.column{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px;min-height:480px}
+.semester-title{font-weight:700;margin-bottom:8px}
+.course{border-radius:14px;border:1px solid var(--border);padding:10px;display:flex;flex-direction:column;gap:8px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.course.pending{background:linear-gradient(135deg,#f3f4f6,#e5e7eb);color:#374151}
+.course.approved{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff}
+.course.failed{background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff}
+.course-header{display:flex;justify-content:space-between;align-items:center;font-weight:700}
+.badge{font-size:11px;border-radius:999px;padding:3px 8px;border:1px solid var(--border);background:#fff;color:#111}
+.badge.dark{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.35);color:#fff}
+.meta{display:flex;gap:8px;font-size:12px;opacity:.9}
+.controls{display:flex;gap:8px}
+select,button{border-radius:10px;border:1px solid var(--border);padding:6px 8px;background:#fff}
+footer{margin-top:16px;display:flex;justify-content:space-between;align-items:center;color:#6b7280;font-size:12px}
+.filterbar{display:flex;gap:8px;align-items:center}

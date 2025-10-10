@@ -1,0 +1,21 @@
+{
+  "name": "proyect-anny-",
+  "version": "1.0.0",
+  "description": "Software para el ramo de Proyecto desarrollo de software",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JOT4JOT4/Proyect-Anny-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/JOT4JOT4/Proyect-Anny-/issues"
+  },
+  "homepage": "https://github.com/JOT4JOT4/Proyect-Anny-#readme"
+}
