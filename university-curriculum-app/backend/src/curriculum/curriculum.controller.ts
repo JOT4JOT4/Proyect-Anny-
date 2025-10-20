@@ -1,4 +1,4 @@
-import { Controller, Post, Body, ValidationPipe } from '@nestjs/common';
+import { Controller, Post, Body, ValidationPipe,Get } from '@nestjs/common';
 import { CurriculumService } from './curriculum.service';
 import { GetCurriculumDto } from './get-curriculum.dto';
 
@@ -11,4 +11,6 @@ export class CurriculumController {
     const { email, password } = getCurriculumDto;
     return this.curriculumService.getCombinedCurriculum(email, password);
   }
+
+
 }

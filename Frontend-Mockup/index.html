@@ -31,6 +31,10 @@
         .semester-column {
             min-height: 600px;
         }
+        .in-progress {
+            background: linear-gradient(135deg, #e4de74,#e4df8c);
+            color: white;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
@@ -85,6 +89,7 @@
                         <option value="all">Todas las materias</option>
                         <option value="approved">Aprobadas</option>
                         <option value="failed">Reprobadas</option>
+                        <option value="in-progress">En curso</option>
                         <option value="pending">Pendientes</option>
                     </select>
                     <select id="semesterFilter" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">

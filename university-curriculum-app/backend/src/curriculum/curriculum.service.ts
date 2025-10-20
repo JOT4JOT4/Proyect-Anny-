@@ -23,7 +23,7 @@ interface Asignatura {
 
 interface AvanceAsignatura {
   course: string;
-  status: 'APROBADO' | 'REPROBADO' | string;
+  status: 'APROBADO' | 'REPROBADO' | 'INSCRITO'| string;
 }
 
 const HAWAII_AUTH_TOKEN = 'jf400fejof13f';
@@ -93,24 +93,42 @@ export class CurriculumService {
         const mallaBase = mallaResponse.data;
         const avanceAlumno = avanceResponse.data;
 
-        const mallaConAvance = mallaBase.map((asignatura) => {
-            const avanceCorrespondiente = avanceAlumno.find(
-            (avance) => avance.course === asignatura.codigo
-            );
-            return {
-            ...asignatura,
-            estado: avanceCorrespondiente?.status === 'APROBADO' ? 'APROBADO' : 'PENDIENTE',
-            };
-        });
+    return mallaBase.map((asignatura) => {
+        const avanceCorrespondiente = avanceAlumno.find(
+          (avance) => avance.course === asignatura.codigo
+        );
 
-        return mallaConAvance;
+        let estadoFinal = 'PENDIENTE'; 
+        if (avanceCorrespondiente) {
+            switch (avanceCorrespondiente.status) {
+                case 'APROBADO':
+                    estadoFinal = 'APROBADO';
+                    break;
+                case 'REPROBADO':
+                    estadoFinal = 'REPROBADO';
+                    break;
+                case 'INSCRITO':
+                    estadoFinal = 'INSCRITO';
+                    break;
+            }
+        }
+        
+        return {
+          ...asignatura,
+          estado: estadoFinal,
+        };
+      });
 
-        } catch (error) {
-        console.error('Error fetching curriculum data:', error.message);
-        if (error instanceof UnauthorizedException) {
-            throw error;
-        }
-        throw new InternalServerErrorException('Error al obtener los datos curriculares');
-        }
+    } catch (error) {
+      console.error('Error fetching curriculum data:', error.message);
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al obtener los datos curriculares');
     }
+  }
+    
+
+
+
 }

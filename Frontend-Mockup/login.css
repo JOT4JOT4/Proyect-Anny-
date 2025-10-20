@@ -324,6 +324,12 @@ body.body-bg {
 .footer-container p {
     margin: 4px 0;
 }
+
+.in-progress {
+background: linear-gradient(135deg, #f59e0b, #d97706);
+color: white;
+}
+
 @media (max-width: 600px) {
     .main-content {
         max-width: 100%;
