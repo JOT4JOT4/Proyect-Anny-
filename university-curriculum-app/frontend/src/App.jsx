@@ -15,13 +15,22 @@ const groupBySemester = (courses) => {
 }
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('userToken') !== null
+  })
   const [courses, setCourses] = useState([])
   const [estadoById, setEstadoById] = useState({})
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('todos')
 
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true)
+  }
+
   useEffect(() => {
+    if (!isAuthenticated) return
+    
     (async () => {
       try {
         // Cargamos malla y estados; si el backend aún no está listo, usamos mock
@@ -46,7 +55,7 @@ export default function App() {
         setLoading(false)
       }
     })()
-  }, [])
+  }, [isAuthenticated])
 
   const handleChangeEstado = async (courseId, estado) => {
     setEstadoById(prev => ({ ...prev, [courseId]: estado }))
@@ -77,6 +86,10 @@ export default function App() {
     if (filter === 'reprobado') return e === 'reprobado'
     if (filter === 'pendiente') return e === 'pendiente'
     return true
+  }
+
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={handleLoginSuccess} />
   }
 
   if (loading) return <div className="app"><div className="container"><p>Cargando...</p></div></div>

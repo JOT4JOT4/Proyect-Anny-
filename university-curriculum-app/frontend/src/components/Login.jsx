@@ -1,31 +1,26 @@
 import { useState } from 'react';
 import '../styles/Login.css';
 
-const Login = () => {
+const Login = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('https://puclaro.ucn.cl/eross/avance/login.php', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        params: {
-          email,
-          password
-        }
-      });
-
+      const response = await fetch(`https://puclaro.ucn.cl/eross/avance/login.php?email=${email}&password=${password}`);
+      
       if (response.ok) {
         const data = await response.json();
-        // Aquí manejarías el token o la respuesta
-        console.log('Login exitoso:', data);
+        // Aquí podrías guardar el token si la API lo devuelve
+        localStorage.setItem('userToken', data.token); // Si hay token
+        onLoginSuccess();
+      } else {
+        setError('Credenciales inválidas');
       }
     } catch (error) {
-      console.error('Error en login:', error);
+      setError('Error al iniciar sesión');
     }
   };
 
@@ -33,6 +28,7 @@ const Login = () => {
     <div className="login-container">
       <form onSubmit={handleSubmit} className="login-form">
         <h2>Iniciar Sesión</h2>
+        {error && <div className="error-message">{error}</div>}
         <div className="form-group">
           <label htmlFor="email">Correo Electrónico:</label>
           <input
