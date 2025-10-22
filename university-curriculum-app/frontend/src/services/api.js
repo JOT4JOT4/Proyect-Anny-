@@ -1,4 +1,16 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+const BASE_URL = 'https://puclaro.ucn.cl/eross/avance';
+
+export const loginUser = async (email, password) => {
+  try {
+    const response = await fetch(`${BASE_URL}/login.php?email=${email}&password=${password}`);
+    if (!response.ok) {
+      throw new Error('Error en la autenticación');
+    }
+    return await response.json();
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
 
 export async function fetchMalla() {
   const res = await fetch(`${BASE_URL}/api/malla`, { credentials: 'include' })
