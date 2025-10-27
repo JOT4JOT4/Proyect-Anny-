@@ -21,6 +21,7 @@ const Curriculum: React.FC = () => {
   const [levelFilter, setLevelFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedCareerIndex, setSelectedCareerIndex] = useState<number>(0);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const raw = localStorage.getItem('userData');
@@ -126,6 +127,39 @@ const Curriculum: React.FC = () => {
   };
 
   const merged = mergedCoursesFor(selectedCareer);
+
+  // Build a quick lookup of courses by code for the selected career (to show names for prereqs)
+  const selectedKey = `${selectedCareer.codigo}-${selectedCareer.catalogo}`;
+  const selectedMalla = mallas[selectedKey] || [];
+  const courseMap: Record<string, any> = {};
+  for (const c of selectedMalla) {
+    const code = String(c.codigo || c.code || c.id || '').trim();
+    if (code) courseMap[code] = c;
+  }
+
+  const parsePrereqs = (curso: any): Array<{ code: string; name?: string }> => {
+    // try several possible fields that might contain prereqs
+    const raw = curso.prereq || curso.prerequisitos || curso.requisitos || curso.reqs || curso.prerequisitos_codes || curso.prereq_codes || curso.requires || curso.corequisites || curso.requisite;
+    if (!raw) return [];
+    let tokens: string[] = [];
+    if (Array.isArray(raw)) {
+      tokens = raw.map(r => String(r));
+    } else if (typeof raw === 'string') {
+      // split by common separators
+      tokens = raw.split(/[;,|\/()\[\]\s]+/).filter(Boolean);
+    } else {
+      tokens = [String(raw)];
+    }
+
+    const out: Array<{ code: string; name?: string }> = [];
+    for (const t of tokens) {
+      const code = t.trim();
+      if (!code) continue;
+      const name = courseMap[code] ? (courseMap[code].asignatura || courseMap[code].nombre || courseMap[code].courseName) : undefined;
+      out.push({ code, name });
+    }
+    return out;
+  };
 
   // Apply filters and search
   const filtered = merged.filter(({ curso, avance }) => {
@@ -240,8 +274,13 @@ const Curriculum: React.FC = () => {
                   label = String(rawStatus).toUpperCase();
                 }
 
+                const prereqs = parsePrereqs(curso);
                 return (
-                  <li key={cursoCodigo + idx} style={{ padding: 12, borderRadius: 8, background: '#fff', border: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <li
+                    key={cursoCodigo + idx}
+                    onMouseEnter={() => setHoveredIndex(idx)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                    style={{ position: 'relative', padding: 12, borderRadius: 8, background: '#fff', border: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <div style={{ fontWeight: 700, color: '#374151' }}>{cursoCodigo} — {curso.asignatura || curso.nombre || curso.courseName}</div>
                       <div style={{ fontSize: 13, color: '#6b7280' }}>{curso.creditos ? `${curso.creditos} créditos • Nivel ${curso.nivel}` : (curso.creditos_text || '')}</div>
@@ -256,6 +295,20 @@ const Curriculum: React.FC = () => {
                         </div>
                       )}
                     </div>
+
+                    {/* Prereq popup */}
+                    {prereqs.length > 0 && hoveredIndex === idx && (
+                      <div style={{ position: 'absolute', left: '8px', top: '100%', marginTop: 8, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, boxShadow: '0 6px 18px rgba(0,0,0,0.08)', zIndex: 40, minWidth: 220 }}>
+                        <div style={{ fontWeight: 700, marginBottom: 6, color: '#374151' }}>Prerequisitos</div>
+                        <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                          {prereqs.map((p, ii) => (
+                            <li key={ii} style={{ padding: '4px 0', borderBottom: ii < prereqs.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+                              <div style={{ fontWeight: 400, color: '#6b7280' }}>{p.code}{p.name ? ` — ${p.name}` : ''}</div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </li>
                 );
               })}
