@@ -33,37 +33,48 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus({ type: "info", message: "Verificando credenciales..." });
-    
+
+    // Note: If the external endpoint blocks CORS, use the backend proxy (/auth/login) instead.
+    const requestOptions: RequestInit = {
+      method: 'GET',
+      redirect: 'follow',
+    };
+
+    const url = `https://puclaro.ucn.cl/eross/avance/login.php?email=${encodeURIComponent(
+      email,
+    )}&password=${encodeURIComponent(password)}`;
+
     try {
-      const response = await fetch('http://localhost:3000/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-      
-      const data = await response.json();
+      const response = await fetch(url, requestOptions);
 
-      if (response.ok) {
-        // Guardar datos en localStorage
-        localStorage.setItem('userData', JSON.stringify({
-          rut: data.rut,
-          carreras: data.carreras
-        }));
+      // Try to parse JSON. The external endpoint should return JSON; if not, handle gracefully.
+      let data: any = null;
+      try {
+        data = await response.json();
+      } catch (parseErr) {
+        // fallback to text for debugging
+        const text = await response.text();
+        console.error('Login response not JSON:', text);
+        throw new Error('Respuesta inválida del servidor de autenticación');
+      }
 
-        setStatus({ type: "success", message: "✅ Acceso exitoso. Redirigiendo..." });
+      // Successful login heuristic: endpoint returns an object with `rut` and `carreras` array
+      if (data && data.rut && Array.isArray(data.carreras)) {
+        // Save the full user data to localStorage
+        localStorage.setItem('userData', JSON.stringify({ rut: data.rut, carreras: data.carreras }));
+
+        setStatus({ type: 'success', message: '✅ Acceso exitoso. Redirigiendo...' });
         setTimeout(() => {
-          setStatus({ type: "info", message: `🎓 Bienvenido al portal académico` });
-          // Recargar la app para que App.tsx detecte userData en localStorage
-          setTimeout(() => window.location.reload(), 800);
-        }, 1200);
+          setStatus({ type: 'info', message: `🎓 Bienvenido al portal académico` });
+          setTimeout(() => window.location.reload(), 700);
+        }, 900);
       } else {
-        setStatus({ type: "error", message: data.message || "❌ Credenciales incorrectas. Por favor, verifica tus datos." });
+        const msg = (data && (data.message || data.error)) || '❌ Credenciales incorrectas. Verifica usuario y contraseña.';
+        setStatus({ type: 'error', message: msg });
       }
     } catch (error) {
-      console.error('Error en la autenticación:', error);
-      setStatus({ type: "error", message: "❌ Error de conexión. Por favor, intenta más tarde." });
+      console.error('Error en la autenticación directa:', error);
+      setStatus({ type: 'error', message: '❌ Error de conexión o CORS. Si ves este error, prueba usar el proxy del backend.' });
     }
   };
 

@@ -22,6 +22,7 @@ const Curriculum: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedCareerIndex, setSelectedCareerIndex] = useState<number>(0);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [simulatedMap, setSimulatedMap] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     const raw = localStorage.getItem('userData');
@@ -31,6 +32,16 @@ const Curriculum: React.FC = () => {
       setUserData(parsed);
     } catch (err) {
       console.error('Invalid userData in localStorage', err);
+    }
+  }, []);
+
+  // Load simulated selections from localStorage (single map for all careers)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('simulatedMap');
+      if (raw) setSimulatedMap(JSON.parse(raw) as Record<string, string[]>);
+    } catch (err) {
+      console.error('Error parsing simulatedMap from localStorage', err);
     }
   }, []);
 
@@ -194,6 +205,30 @@ const Curriculum: React.FC = () => {
   }).length;
   const progressPercent = totalCount > 0 ? Math.round((approvedCount / totalCount) * 100) : 0;
 
+  const careerSimKey = `${selectedCareer.codigo}-${selectedCareer.catalogo}`;
+  const simulatedForCareer = simulatedMap[careerSimKey] || [];
+  const isSimulated = (code: string) => simulatedForCareer.includes(code);
+
+  const toggleSimulated = (code: string) => {
+    setSimulatedMap(prev => {
+      const copy: Record<string, string[]> = { ...prev };
+      const arr = new Set(copy[careerSimKey] || []);
+      if (arr.has(code)) arr.delete(code); else arr.add(code);
+      copy[careerSimKey] = Array.from(arr);
+      try { localStorage.setItem('simulatedMap', JSON.stringify(copy)); } catch (e) { console.error(e); }
+      return copy;
+    });
+  };
+
+  const clearSimulation = () => {
+    setSimulatedMap(prev => {
+      const copy = { ...prev };
+      copy[careerSimKey] = [];
+      try { localStorage.setItem('simulatedMap', JSON.stringify(copy)); } catch (e) { console.error(e); }
+      return copy;
+    });
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: '#f3f4f6', paddingBottom: 80 }}>
       <header style={{ background: '#fff', padding: '12px 24px', boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
@@ -241,6 +276,11 @@ const Curriculum: React.FC = () => {
 
           <input placeholder="Buscar materia..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ marginLeft: 'auto', padding: '6px 10px', borderRadius: 6, border: '1px solid #d1d5db' }} />
 
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+          <div style={{ fontSize: 14, color: '#374151' }}>Simulación: <strong>{simulatedForCareer.length}</strong> ramos seleccionados</div>
+          <button onClick={clearSimulation} style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer' }}>Limpiar simulación</button>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, color: '#374151' }}>
@@ -293,6 +333,17 @@ const Curriculum: React.FC = () => {
                         <div style={{ fontSize: 11, color: '#6b7280', marginTop: 6 }}>
                           {avance.period ? `${avance.period}` : ''} {avance.nrc ? `• ${avance.nrc}` : ''}
                         </div>
+                      )}
+                    </div>
+
+                    <div style={{ marginLeft: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {/* Simulation toggle */}
+                      <button onClick={() => toggleSimulated(cursoCodigo)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #d1d5db', background: isSimulated(cursoCodigo) ? '#bfdbfe' : '#eef2ff', cursor: 'pointer' }}>
+                        {isSimulated(cursoCodigo) ? 'Quitar simulación' : 'Simular ramo'}
+                      </button>
+                      {/* Simulated badge */}
+                      {isSimulated(cursoCodigo) && (
+                        <div style={{ fontSize: 12, padding: '4px 8px', borderRadius: 6, background: '#3b82f6', color: '#fff', textAlign: 'center' }}>SIMULADO</div>
                       )}
                     </div>
 
