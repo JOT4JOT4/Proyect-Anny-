@@ -22,11 +22,31 @@ const Curriculum: React.FC = () => {
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ left: number; top: number } | null>(null);
   const [tooltipPrereqs, setTooltipPrereqs] = useState<Array<{ code: string; name?: string }>>([]);
-  // Filters
+  // Filtros
   const [filterLevel, setFilterLevel] = useState<string>('ALL');
   const [showAprob, setShowAprob] = useState<boolean>(true);
   const [showReprob, setShowReprob] = useState<boolean>(true);
   const [showInscrito, setShowInscrito] = useState<boolean>(true);
+  // Simulation state: whether user is selecting courses to simulate and the selections per career
+  const [isSimulating, setIsSimulating] = useState<boolean>(false);
+  const [simulatedMap, setSimulatedMap] = useState<Record<string, string[]>>(() => {
+    try {
+      const raw = localStorage.getItem('simulatedSelections');
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return {};
+    }
+  });
+  // Toast state for non-intrusive notifications
+  const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
+
+  // Auto-dismiss toast after 3 seconds
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   useEffect(() => {
     const raw = localStorage.getItem('userData');
@@ -149,10 +169,18 @@ const Curriculum: React.FC = () => {
   // Build a quick lookup of courses by code for the selected career (to show names for prereqs)
   const selectedKey = `${selectedCareer.codigo}-${selectedCareer.catalogo}`;
   const selectedMalla = mallas[selectedKey] || [];
+  // normalize codes (trim, uppercase, remove non-alphanum) to improve matching
+  const normalizeCode = (s: any) => String(s || '').trim().toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9]/g, '');
+
   const courseMap: Record<string, any> = {};
+  const normalizedCourseMap: Record<string, any> = {};
   for (const c of selectedMalla) {
-    const code = String(c.codigo || c.code || c.id || '').trim();
-    if (code) courseMap[code] = c;
+    const codeRaw = String(c.codigo || c.code || c.id || '').trim();
+    if (codeRaw) {
+      courseMap[codeRaw] = c;
+      const norm = normalizeCode(codeRaw);
+      if (norm) normalizedCourseMap[norm] = c;
+    }
   }
 
   const parsePrereqs = (curso: any): Array<{ code: string; name?: string }> => {
@@ -163,8 +191,8 @@ const Curriculum: React.FC = () => {
     if (Array.isArray(raw)) {
       tokens = raw.map(r => String(r));
     } else if (typeof raw === 'string') {
-      // split by common separators
-      tokens = raw.split(/[;,|\/()\[\]\s]+/).filter(Boolean);
+      // split by separators but preserve internal spaces (e.g. "ING 101") so normalizeCode can join them
+      tokens = raw.split(/[;,|\/()\[\]]+/).map(t => String(t).trim()).filter(Boolean);
     } else {
       tokens = [String(raw)];
     }
@@ -173,7 +201,9 @@ const Curriculum: React.FC = () => {
     for (const t of tokens) {
       const code = t.trim();
       if (!code) continue;
-      const name = courseMap[code] ? (courseMap[code].asignatura || courseMap[code].nombre || courseMap[code].courseName) : undefined;
+      const norm = normalizeCode(code);
+      const found = normalizedCourseMap[norm];
+      const name = found ? (found.asignatura || found.nombre || found.courseName) : undefined;
       out.push({ code, name });
     }
     return out;
@@ -202,6 +232,155 @@ const Curriculum: React.FC = () => {
     return { ...item, cursoCodigo, nivel, isAprob, isReprob, isInscrito, shouldFade };
   });
 
+  const careerKey = `${selectedCareer.codigo}-${selectedCareer.catalogo}`;
+  const simulatedThisCareer = new Set(simulatedMap[careerKey] || []);
+
+  // Check if all prerequisites for a course are met (either approved or in simulated selection)
+  const arePrerequisitesMet = (curso: any): { met: boolean; missingNames: string[] } => {
+    const prereqs = parsePrereqs(curso);
+    if (prereqs.length === 0) return { met: true, missingNames: [] };
+
+    const missingNames: string[] = [];
+    for (const prereq of prereqs) {
+      const rawCode = String(prereq.code || '').trim();
+      if (!rawCode) continue;
+      const norm = normalizeCode(rawCode);
+
+      // If the prereq code is not present in the current malla, ignore it (treat as non-existent)
+      if (!norm || !normalizedCourseMap[norm]) {
+        // intentionally ignored: prereq is outside this malla or unknown
+        continue;
+      }
+
+      // Check if prerequisite is approved in avance (compare normalized codes)
+      const avance = avances[selectedCareer.codigo] || [];
+      const prereqInAvance = avance.find((a: any) => {
+        const candidates = [a.codigo, a.code, a.courseCode, a['course_code'], a.asignatura];
+        return candidates.some((f: any) => normalizeCode(f) === norm);
+      });
+
+      const isApproved = prereqInAvance && String((prereqInAvance.status || prereqInAvance.result || '') || '').toLowerCase().includes('aprob');
+
+      if (!isApproved) {
+        missingNames.push(prereq.name || rawCode);
+      }
+    }
+
+    return { met: missingNames.length === 0, missingNames };
+  };
+
+  const toggleSimulated = (key: string) => {
+    const next = { ...simulatedMap };
+    const arr = new Set(next[careerKey] || []);
+    const isAdding = !arr.has(key);
+
+    const candidate = decorated.find((d: any) => `${d.cursoCodigo}-${d.nivel}` === key);
+    if (!candidate) return;
+
+    // Check if prerequisites are met
+    if (isAdding) {
+      const { met, missingNames } = arePrerequisitesMet(candidate.curso);
+      if (!met) {
+        setToast({ 
+          message: `No puedes seleccionar este ramo. Prerequisitos faltantes: ${missingNames.join(', ')}.`, 
+          type: 'error' 
+        });
+        return;
+      }
+    }
+
+    // compute current credits and candidate course credits
+    const currentCredits = Array.from(arr).reduce((sum, k) => {
+      const it = decorated.find((d: any) => `${d.cursoCodigo}-${d.nivel}` === k);
+      return sum + (it ? getCreditsFromCourse(it.curso) : 0);
+    }, 0);
+    const candidateCredits = getCreditsFromCourse(candidate.curso);
+
+    if (isAdding && currentCredits + candidateCredits > 30) {
+      setToast({ message: 'No puedes seleccionar más de 30 créditos en la simulación.', type: 'error' });
+      return;
+    }
+
+    if (arr.has(key)) arr.delete(key); else arr.add(key);
+    next[careerKey] = Array.from(arr);
+    setSimulatedMap(next);
+    try { localStorage.setItem('simulatedSelections', JSON.stringify(next)); } catch {}
+  };
+
+  const clearSimulatedForCareer = () => {
+    const next = { ...simulatedMap };
+    delete next[careerKey];
+    setSimulatedMap(next);
+    try { localStorage.setItem('simulatedSelections', JSON.stringify(next)); } catch {}
+  };
+
+  // helpers for credits & export
+  const getCreditsFromCourse = (curso: any): number => {
+    if (!curso) return 0;
+    const candidates = [curso.creditos, curso.credito, curso.credits, curso.carga, curso.uv, curso.horas, curso.weight, curso.cr];
+    for (const c of candidates) {
+      if (c !== undefined && c !== null && c !== '') {
+        const n = Number(String(c).replace(',', '.'));
+        if (!Number.isNaN(n)) return n;
+      }
+    }
+    // try nested fields or strings
+    if (curso.descripcion) {
+      const m = String(curso.descripcion).match(/(\d+(?:[\.,]\d+)?)[^\d]*cr|creditos|credits/i);
+      if (m) return Number(m[1].replace(',', '.'));
+    }
+    return 0;
+  };
+
+  // build a quick lookup from decorated items by cubeKey
+  const decoratedMap = new Map<string, any>(decorated.map((it: any) => [`${it.cursoCodigo}-${it.nivel}`, it]));
+  const simulatedKeys = simulatedMap[careerKey] || [];
+  const simulatedCredits = simulatedKeys.reduce((sum: number, k: string) => {
+    const it = decoratedMap.get(k);
+    return sum + (it ? getCreditsFromCourse(it.curso) : 0);
+  }, 0);
+
+  const exportSimulatedJSON = () => {
+    const items = simulatedKeys.map(k => {
+      const it = decoratedMap.get(k);
+      if (!it) return { key: k };
+      const curso = it.curso || {};
+      return {
+        key: k,
+        codigo: String(curso.codigo || curso.code || curso.id || ''),
+        nombre: curso.asignatura || curso.nombre || curso.title || '',
+        nivel: it.nivel,
+        creditos: getCreditsFromCourse(curso),
+        raw: curso,
+      };
+    });
+    const blob = new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `simulacion-${careerKey}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportSimulatedCSV = () => {
+    const rows = [['codigo', 'nombre', 'nivel', 'creditos']];
+    for (const k of simulatedKeys) {
+      const it = decoratedMap.get(k);
+      if (!it) { rows.push([k, '', '', '']); continue; }
+      const curso = it.curso || {};
+      rows.push([String(curso.codigo || curso.code || curso.id || ''), (curso.asignatura || curso.nombre || ''), String(it.nivel), String(getCreditsFromCourse(curso))]);
+    }
+    const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `simulacion-${careerKey}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   // Responsive styles for mobile
   // On mobile (≤768px), switch to rows per semester and make cubes full-width
   const responsiveStyle = `
@@ -226,6 +405,16 @@ const Curriculum: React.FC = () => {
         padding: 4px !important;
       }
     }
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
   `;
   return (
     <div style={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column', background: '#f3f4f6' }}>
@@ -244,7 +433,21 @@ const Curriculum: React.FC = () => {
               <div style={{ fontWeight: 600, color: '#374151' }}>{userData.rut}</div>
               <div style={{ color: '#6b7280' }}>Activo</div>
             </div>
-            <button onClick={() => { localStorage.removeItem('userData'); window.location.reload(); }} style={{ padding: '8px 16px', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 500 }}>Logout</button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => setIsSimulating(s => !s)} style={{ padding: '8px 12px', background: isSimulating ? '#60a5fa' : '#e0f2ff', color: isSimulating ? '#fff' : '#0369a1', border: '1px solid #93c5fd', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>
+                {isSimulating ? 'Simulando (clic para seleccionar)' : 'Simular malla'}
+              </button>
+              <button onClick={() => { clearSimulatedForCareer(); }} style={{ padding: '8px 12px', background: '#fff', color: '#374151', border: '1px solid #d1d5db', borderRadius: 6, cursor: 'pointer' }}>Limpiar</button>
+                <button onClick={() => { localStorage.removeItem('userData'); window.location.reload(); }} style={{ padding: '8px 12px', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 500 }}>Logout</button>
+              </div>
+              <div style={{ marginLeft: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ fontSize: 13, color: '#374151' }}>Seleccionados: <strong style={{ color: '#111' }}>{simulatedKeys.length}</strong></div>
+                <div style={{ fontSize: 13, color: '#374151' }}>Créditos: <strong style={{ color: '#111' }}>{simulatedCredits}</strong></div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button onClick={exportSimulatedJSON} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff', color: '#374151'}}>Exportar JSON</button>
+                  <button onClick={exportSimulatedCSV} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff', color: '#374151' }}>Exportar CSV</button>
+                </div>
+            </div>
           </div>
         </div>
       </header>
@@ -286,6 +489,27 @@ const Curriculum: React.FC = () => {
           </div>
         )}
         {error && <div style={{ padding: 8, background: '#fee2e2', borderRadius: 4, color: '#991b1b' }}>Error: {error}</div>}
+
+        {/* Toast notification */}
+        {toast && (
+          <div style={{
+            position: 'fixed',
+            top: 16,
+            right: 16,
+            background: toast.type === 'error' ? '#fee2e2' : '#dcfce7',
+            border: `1px solid ${toast.type === 'error' ? '#fca5a5' : '#86efac'}`,
+            borderRadius: 6,
+            padding: '12px 16px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            zIndex: 10000,
+            color: toast.type === 'error' ? '#991b1b' : '#166534',
+            fontSize: 13,
+            fontWeight: 500,
+            animation: 'slideIn 300ms ease-out',
+          }}>
+            {toast.message}
+          </div>
+        )}
 
         {!loading && !error && decorated.length > 0 && (
           <div className="curriculum-main" style={{ display: 'flex', gap: 8, overflow: 'auto', paddingBottom: 10 }}>
@@ -345,10 +569,21 @@ const Curriculum: React.FC = () => {
                         const transformValue = hoveredKey === cubeKey ? 'translateY(-3px) scale(1.02)' : 'translateY(0)';
                         const boxShadowValue = hoveredKey === cubeKey ? '0 6px 18px rgba(0,0,0,0.18)' : '0 1px 2px rgba(0,0,0,0.08)';
 
+                        const isSimSelected = simulatedThisCareer.has(cubeKey);
+                        const finalBg = isSimSelected ? '#e6f0ff' : bgColor;
+                        const finalBorder = isSimSelected ? '2px solid #3b82f6' : `2px solid ${borderColor}`;
+
                         return (
                           <div
                             className="curriculum-cube"
                             key={cursoCodigo + idx}
+                            onClick={(e) => {
+                              if (isSimulating) {
+                                e.stopPropagation();
+                                toggleSimulated(cubeKey);
+                                return;
+                              }
+                            }}
                             onMouseEnter={(e) => {
                               const el = e.currentTarget as HTMLElement;
                               const rect = el.getBoundingClientRect();
@@ -367,8 +602,8 @@ const Curriculum: React.FC = () => {
                               width: '85%',
                               minHeight: '80px',
                               borderRadius: 4,
-                              background: bgColor,
-                              border: `2px solid ${borderColor}`,
+                              background: finalBg,
+                              border: finalBorder,
                               display: 'flex',
                               flexDirection: 'column',
                               justifyContent: 'space-between',
@@ -378,6 +613,7 @@ const Curriculum: React.FC = () => {
                               transform: transformValue,
                               opacity: isFaded ? 0.38 : 1,
                               filter: isFaded ? 'grayscale(80%) blur(1px)' : 'none',
+                              color: isSimSelected ? '#0f172a' : undefined,
                             }}
                           >
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
