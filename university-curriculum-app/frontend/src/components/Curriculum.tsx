@@ -17,12 +17,16 @@ const Curriculum: React.FC = () => {
   const [avances, setAvances] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'approved' | 'failed' | 'other'>('all');
-  const [levelFilter, setLevelFilter] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedCareerIndex, setSelectedCareerIndex] = useState<number>(0);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [simulatedMap, setSimulatedMap] = useState<Record<string, string[]>>({});
+  // hoveredKey is a unique string per cube (e.g. `${cursoCodigo}-${nivel}`)
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ left: number; top: number } | null>(null);
+  const [tooltipPrereqs, setTooltipPrereqs] = useState<Array<{ code: string; name?: string }>>([]);
+  // Filters
+  const [filterLevel, setFilterLevel] = useState<string>('ALL');
+  const [showAprob, setShowAprob] = useState<boolean>(true);
+  const [showReprob, setShowReprob] = useState<boolean>(true);
+  const [showInscrito, setShowInscrito] = useState<boolean>(true);
 
   useEffect(() => {
     const raw = localStorage.getItem('userData');
@@ -38,8 +42,7 @@ const Curriculum: React.FC = () => {
   // Load simulated selections from localStorage (single map for all careers)
   useEffect(() => {
     try {
-      const raw = localStorage.getItem('simulatedMap');
-      if (raw) setSimulatedMap(JSON.parse(raw) as Record<string, string[]>);
+      // Temporarily commented - simulation on hold
     } catch (err) {
       console.error('Error parsing simulatedMap from localStorage', err);
     }
@@ -139,6 +142,10 @@ const Curriculum: React.FC = () => {
 
   const merged = mergedCoursesFor(selectedCareer);
 
+  // compute available niveles from merged
+  const niveles = Array.from(new Set(merged.map((m: any) => String(m.curso.nivel || m.curso.level || m.curso.semestre || 'N/A').trim())))
+    .sort((a: string, b: string) => (parseInt(a) || 999) - (parseInt(b) || 999));
+
   // Build a quick lookup of courses by code for the selected career (to show names for prereqs)
   const selectedKey = `${selectedCareer.codigo}-${selectedCareer.catalogo}`;
   const selectedMalla = mallas[selectedKey] || [];
@@ -172,199 +179,235 @@ const Curriculum: React.FC = () => {
     return out;
   };
 
-  // Apply filters and search
-  const filtered = merged.filter(({ curso, avance }) => {
-    // level filter
-    if (levelFilter !== 'all') {
-      const nivel = String(curso.nivel || curso.level || '').trim();
-      if (nivel !== levelFilter) return false;
-    }
+  // Apply filters: we won't remove non-matching courses, instead we mark them as faded
+  const decorated = merged.map((item: any) => {
+    const curso = item.curso;
+    const cursoCodigo = String(curso.codigo || curso.code || curso.id || '').trim();
+    const nivel = String(curso.nivel || curso.level || curso.semestre || 'N/A').trim();
 
-    // status filter
-    const rawStatus = (avance && (avance.status || avance.inscriptionType || avance.result || '')) || '';
-    const statusStr = String(rawStatus).toLowerCase();
-    if (statusFilter === 'approved' && !statusStr.includes('aprob')) return false;
-    if (statusFilter === 'failed' && !(statusStr.includes('reprob') || statusStr.includes('repr') || statusStr.includes('failed'))) return false;
-    if (statusFilter === 'other' && (statusStr === '' || statusStr.includes('aprob') || statusStr.includes('reprob') || statusStr.includes('repr') || statusStr.includes('failed'))) return false;
+    const avance = item.avance || {};
+    const rawStatus = String((avance.status || avance.inscriptionType || avance.result || '') || '').toLowerCase();
+    const isAprob = rawStatus.includes('aprob');
+    const isReprob = rawStatus.includes('reprob') || rawStatus.includes('repr') || rawStatus.includes('failed');
+    const isInscrito = rawStatus.includes('inscr') || rawStatus.includes('registered') || rawStatus.includes('enrolled') || (!isAprob && !isReprob && rawStatus.length > 0);
 
-    // search
-    if (searchTerm) {
-      const q = searchTerm.toLowerCase();
-      const fields = [curso.codigo, curso.asignatura, curso.nombre, (avance && (avance.course || avance.asignatura || avance.courseName))];
-      const found = fields.some((f: any) => f && String(f).toLowerCase().includes(q));
-      if (!found) return false;
-    }
+    // status match
+    const statusMatch = (isAprob && showAprob) || (isReprob && showReprob) || (isInscrito && showInscrito) || (!isAprob && !isReprob && !isInscrito && (showAprob || showReprob || showInscrito));
 
-    return true;
+    const levelMatch = filterLevel === 'ALL' || filterLevel === nivel;
+
+    // We will fade items that don't match either the level filter or the status toggles
+    const shouldFade = !(statusMatch && levelMatch);
+
+    return { ...item, cursoCodigo, nivel, isAprob, isReprob, isInscrito, shouldFade };
   });
 
-  const totalCount = merged.length;
-  const approvedCount = merged.filter(({ avance }) => {
-    const s = String((avance && (avance.status || avance.result || avance.inscriptionType)) || '').toLowerCase();
-    return s.includes('aprob');
-  }).length;
-  const progressPercent = totalCount > 0 ? Math.round((approvedCount / totalCount) * 100) : 0;
-
-  const careerSimKey = `${selectedCareer.codigo}-${selectedCareer.catalogo}`;
-  const simulatedForCareer = simulatedMap[careerSimKey] || [];
-  const isSimulated = (code: string) => simulatedForCareer.includes(code);
-
-  const toggleSimulated = (code: string) => {
-    setSimulatedMap(prev => {
-      const copy: Record<string, string[]> = { ...prev };
-      const arr = new Set(copy[careerSimKey] || []);
-      if (arr.has(code)) arr.delete(code); else arr.add(code);
-      copy[careerSimKey] = Array.from(arr);
-      try { localStorage.setItem('simulatedMap', JSON.stringify(copy)); } catch (e) { console.error(e); }
-      return copy;
-    });
-  };
-
-  const clearSimulation = () => {
-    setSimulatedMap(prev => {
-      const copy = { ...prev };
-      copy[careerSimKey] = [];
-      try { localStorage.setItem('simulatedMap', JSON.stringify(copy)); } catch (e) { console.error(e); }
-      return copy;
-    });
-  };
-
+  // Responsive styles for mobile
+  // On mobile (≤768px), switch to rows per semester and make cubes full-width
+  const responsiveStyle = `
+    @media (max-width: 768px) {
+      .curriculum-main {
+        flex-direction: column !important;
+        gap: 0 !important;
+      }
+      .curriculum-semester {
+        flex-direction: row !important;
+        min-width: 100% !important;
+        margin-bottom: 16px;
+        gap: 8px !important;
+      }
+      .curriculum-cube {
+        width: 100% !important;
+        min-width: 0 !important;
+        margin-bottom: 8px;
+      }
+      .curriculum-semester-title {
+        font-size: 15px !important;
+        padding: 4px !important;
+      }
+    }
+  `;
   return (
-    <div style={{ minHeight: '100vh', background: '#f3f4f6', paddingBottom: 80 }}>
-      <header style={{ background: '#fff', padding: '12px 24px', boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column', background: '#f3f4f6' }}>
+      <style>{responsiveStyle}</style>
+      {/* Header - Fixed at top */}
+      <header style={{ background: '#fff', padding: '16px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderBottom: '1px solid #e5e7eb', zIndex: 100 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1 style={{ color: '#2563eb', fontSize: 20, margin: 0 }}>🎓 Universidad</h1>
-            <div style={{ fontSize: 14, color: '#374151' }}>Malla Curricular</div>
+            <h1 style={{ color: '#2563eb', fontSize: 24, margin: 0, fontWeight: 700 }}>🎓 Malla Curricular</h1>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontWeight: 600 , color: '#4b5563'}}>{userData.rut}</div>
-              <div style={{ fontSize: 13, color: '#4b5563' }}>Cuenta activa</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <select value={selectedCareerIndex} onChange={e => setSelectedCareerIndex(Number(e.target.value))} style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 14 }}>
+              {userData.carreras.map((c, i) => <option key={i} value={i}>{c.nombre}</option>)}
+            </select>
+            <div style={{ textAlign: 'right', fontSize: 13 }}>
+              <div style={{ fontWeight: 600, color: '#374151' }}>{userData.rut}</div>
+              <div style={{ color: '#6b7280' }}>Activo</div>
             </div>
-            <button onClick={() => { localStorage.removeItem('userData'); window.location.reload(); }} style={{ padding: '8px 12px', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Logout</button>
+            <button onClick={() => { localStorage.removeItem('userData'); window.location.reload(); }} style={{ padding: '8px 16px', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 500 }}>Logout</button>
           </div>
         </div>
       </header>
 
-      <main style={{ maxWidth: 1100, margin: '24px auto', padding: '0 16px' }}>
-        {loading && <div style={{ padding: 12, background: '#fff', borderRadius: 8 }}>Cargando mallas y avances...</div>}
-        {error && <div style={{ color: 'red' }}>{error}</div>}
+      {/* Main content - scrollable */}
+      <main style={{ flex: 1, overflow: 'auto', padding: '8px', display: 'flex', flexDirection: 'column', marginTop: '8px' }}>
+        {loading && (
+          <div style={{ padding: 8, background: '#fff', borderRadius: 4, textAlign: 'center', color: '#374151' }}>
+            Cargando mallas y avances...
+          </div>
+        )}
+        {/* Filter bar */}
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', margin: '8px 0 12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <label style={{ fontSize: 13, color: '#374151', fontWeight: 600 }}>Nivel</label>
+            <select value={filterLevel} onChange={e => setFilterLevel(e.target.value)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #d1d5db' }}>
+              <option value="ALL">Todos</option>
+              {niveles.map(n => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </div>
 
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
-          <label style={{ fontWeight: 600 , color: "blue"}}>Carrera:</label>
-          <select value={selectedCareerIndex} onChange={e => setSelectedCareerIndex(Number(e.target.value))}>
-            {userData.carreras.map((c, i) => <option key={i} value={i}>{c.nombre} ({c.codigo})</option>)}
-          </select>
-
-          <label style={{ marginLeft: 12 , color: "blue"}}>Filtro estado:</label>
-          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as any)}>
-            <option value="all">Todas</option>
-            <option value="approved">Aprobadas</option>
-            <option value="failed">Reprobadas</option>
-            <option value="other">Otros</option>
-          </select>
-
-          <label style={{ marginLeft: 12 , color: "blue"}}>Nivel:</label>
-          <select value={levelFilter} onChange={e => setLevelFilter(e.target.value)}>
-            <option value="all">Todos</option>
-            {/* try to auto-populate levels from merged */}
-            {Array.from(new Set(merged.map(m => String(m.curso.nivel || m.curso.level || '').trim()).filter(v => v))).map(l => (
-              <option key={l} value={l}>{l}</option>
-            ))}
-          </select>
-
-          <input placeholder="Buscar materia..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ marginLeft: 'auto', padding: '6px 10px', borderRadius: 6, border: '1px solid #d1d5db' }} />
-
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <label style={{ fontSize: 13 }}><input type="checkbox" checked={showAprob} onChange={e => setShowAprob(e.target.checked)} /> <span style={{ marginLeft: 6, color: '#374151' }}>Aprobados</span></label>
+            <label style={{ fontSize: 13 }}><input type="checkbox" checked={showReprob} onChange={e => setShowReprob(e.target.checked)} /> <span style={{ marginLeft: 6, color: '#374151'  }}>Reprobados</span></label>
+            <label style={{ fontSize: 13 }}><input type="checkbox" checked={showInscrito} onChange={e => setShowInscrito(e.target.checked)} /> <span style={{ marginLeft: 6, color: '#374151'  }}>Inscritos</span></label>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-          <div style={{ fontSize: 14, color: '#374151' }}>Simulación: <strong>{simulatedForCareer.length}</strong> ramos seleccionados</div>
-          <button onClick={clearSimulation} style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer' }}>Limpiar simulación</button>
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, color: '#374151' }}>
-          <div>Mostrando {filtered.length} de {totalCount} ramos • Progreso: {progressPercent}% ({approvedCount}/{totalCount} aprobadas)</div>
-        </div>
-
-        {filtered.length === 0 && <div style={{ padding: 12, background: '#fff', borderRadius: 8, color: '#374151'}}>No hay ramos para los filtros seleccionados.</div>}
-
-        {filtered.length > 0 && (
-          <section style={{ background: '#fff', borderRadius: 8, padding: 20, marginBottom: 20 }}>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
-              {filtered.map(({ curso, avance }: any, idx) => {
-                const cursoCodigo = String(curso.codigo || curso.code || curso.id || '').trim();
-                const rawStatus = (avance && (avance.status || avance.inscriptionType || avance.result || '')) || '';
-                const statusStr = String(rawStatus).toLowerCase();
-                let background = '#f3f4f6';
-                let color = '#111827';
-                let label = '';
-
-                if (statusStr.includes('aprob')) {
-                  background = '#10b981';
-                  color = '#fff';
-                  label = 'APROBADO';
-                } else if (statusStr.includes('reprob') || statusStr.includes('repr') || statusStr.includes('failed')) {
-                  background = '#ef4444';
-                  color = '#fff';
-                  label = 'REPROBADO';
-                } else if (statusStr) {
-                  background = '#fde68a';
-                  color = '#111827';
-                  label = String(rawStatus).toUpperCase();
-                }
-
-                const prereqs = parsePrereqs(curso);
-                return (
-                  <li
-                    key={cursoCodigo + idx}
-                    onMouseEnter={() => setHoveredIndex(idx)}
-                    onMouseLeave={() => setHoveredIndex(null)}
-                    style={{ position: 'relative', padding: 12, borderRadius: 8, background: '#fff', border: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ fontWeight: 700, color: '#374151' }}>{cursoCodigo} — {curso.asignatura || curso.nombre || curso.courseName}</div>
-                      <div style={{ fontSize: 13, color: '#6b7280' }}>{curso.creditos ? `${curso.creditos} créditos • Nivel ${curso.nivel}` : (curso.creditos_text || '')}</div>
-                    </div>
-                    <div style={{ marginLeft: 12, minWidth: 100, textAlign: 'right' }}>
-                      <div style={{ display: 'inline-block', padding: '6px 10px', borderRadius: 6, background, color, fontWeight: 700, fontSize: 12 }}>
-                        {label || '—'}
-                      </div>
-                      {avance && (
-                        <div style={{ fontSize: 11, color: '#6b7280', marginTop: 6 }}>
-                          {avance.period ? `${avance.period}` : ''} {avance.nrc ? `• ${avance.nrc}` : ''}
-                        </div>
-                      )}
-                    </div>
-
-                    <div style={{ marginLeft: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {/* Simulation toggle */}
-                      <button onClick={() => toggleSimulated(cursoCodigo)} style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #d1d5db', background: isSimulated(cursoCodigo) ? '#bfdbfe' : '#eef2ff', cursor: 'pointer' }}>
-                        {isSimulated(cursoCodigo) ? 'Quitar simulación' : 'Simular ramo'}
-                      </button>
-                      {/* Simulated badge */}
-                      {isSimulated(cursoCodigo) && (
-                        <div style={{ fontSize: 12, padding: '4px 8px', borderRadius: 6, background: '#3b82f6', color: '#fff', textAlign: 'center' }}>SIMULADO</div>
-                      )}
-                    </div>
-
-                    {/* Prereq popup */}
-                    {prereqs.length > 0 && hoveredIndex === idx && (
-                      <div style={{ position: 'absolute', left: '8px', top: '100%', marginTop: 8, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, boxShadow: '0 6px 18px rgba(0,0,0,0.08)', zIndex: 40, minWidth: 220 }}>
-                        <div style={{ fontWeight: 700, marginBottom: 6, color: '#374151' }}>Prerequisitos</div>
-                        <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                          {prereqs.map((p, ii) => (
-                            <li key={ii} style={{ padding: '4px 0', borderBottom: ii < prereqs.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
-                              <div style={{ fontWeight: 400, color: '#6b7280' }}>{p.code}{p.name ? ` — ${p.name}` : ''}</div>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
+        {/* Global fixed tooltip to avoid clipping / z-index issues */}
+        {tooltipPos && tooltipPrereqs.length > 0 && (
+          <div style={{ position: 'fixed', left: tooltipPos.left, top: tooltipPos.top, background: '#fff', border: '1px solid #d1d5db', borderRadius: 4, padding: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.18)', zIndex: 9999, minWidth: 160, fontSize: 12 }}>
+            <div style={{ fontWeight: 700, marginBottom: 6, color: '#374151' }}>Req:</div>
+            <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+              {tooltipPrereqs.slice(0, 6).map((p, ii) => (
+                <li key={ii} style={{ padding: '2px 0', color: '#374151' }}>{p.code}{p.name ? ` — ${p.name}` : ''}</li>
+              ))}
+              {tooltipPrereqs.length > 6 && <li style={{ padding: '2px 0', color: '#9ca3af' }}>+{tooltipPrereqs.length - 6}</li>}
             </ul>
-          </section>
+          </div>
+        )}
+        {error && <div style={{ padding: 8, background: '#fee2e2', borderRadius: 4, color: '#991b1b' }}>Error: {error}</div>}
+
+        {!loading && !error && decorated.length > 0 && (
+          <div className="curriculum-main" style={{ display: 'flex', gap: 8, overflow: 'auto', paddingBottom: 10 }}>
+            {/* Grouped by nivel (semestre) - Each is a column (desktop) or row (mobile) */}
+            {Array.from(
+              new Map(
+                decorated.map(({ curso }: any) => {
+                  const nivel = String(curso.nivel || curso.level || curso.semestre || 'N/A').trim();
+                  return [nivel, { curso }];
+                })
+              ).entries()
+            )
+              .sort(([a], [b]) => {
+                const aNum = parseInt(String(a)) || 999;
+                const bNum = parseInt(String(b)) || 999;
+                return aNum - bNum;
+              })
+              .map(([nivel]) => {
+                const nivelCourses = decorated.filter(({ curso }: any) => {
+                  const n = String(curso.nivel || curso.level || curso.semestre || 'N/A').trim();
+                  return n === String(nivel);
+                });
+
+                return (
+                  <section className="curriculum-semester" key={String(nivel)} style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: '60px', minWidth: '80px', flex: '0 0 auto' }}>
+                    <h2 className="curriculum-semester-title" style={{ fontSize: 13, fontWeight: 700, color: '#fff', margin: 0, padding: '2px', background: '#2563eb', borderRadius: 4, textAlign: 'center' }}>
+                      Sem {String(nivel)}
+                    </h2>
+                    <div style={{ display: 'flex', flexDirection: 'column'}}>
+                      {nivelCourses.map(({ curso, avance, shouldFade }: any, idx: number) => {
+                        const cursoCodigo = String(curso.codigo || curso.code || curso.id || '').trim();
+                        const rawStatus = (avance && (avance.status || avance.inscriptionType || avance.result || '')) || '';
+                        const statusStr = String(rawStatus).toLowerCase();
+                        const cubeKey = `${cursoCodigo}-${nivel}`;
+                        
+                        let bgColor = '#f3f4f6';
+                        let borderColor = '#d1d5db';
+                        let statusBgColor = '#f3f4f6';
+                        let statusTextColor = '#6b7280';
+
+                        if (statusStr.includes('aprob')) {
+                          bgColor = '#d1fae5';
+                          borderColor = '#10b981';
+                          statusBgColor = '#10b981';
+                          statusTextColor = '#fff';
+                        } else if (statusStr.includes('reprob') || statusStr.includes('repr') || statusStr.includes('failed')) {
+                          bgColor = '#fee2e2';
+                          borderColor = '#ef4444';
+                          statusBgColor = '#ef4444';
+                          statusTextColor = '#fff';
+                        }
+
+                        const prereqs = parsePrereqs(curso);
+
+                        // visual fade for non-matching filters
+                        const isFaded = Boolean(shouldFade);
+                        const transformValue = hoveredKey === cubeKey ? 'translateY(-3px) scale(1.02)' : 'translateY(0)';
+                        const boxShadowValue = hoveredKey === cubeKey ? '0 6px 18px rgba(0,0,0,0.18)' : '0 1px 2px rgba(0,0,0,0.08)';
+
+                        return (
+                          <div
+                            className="curriculum-cube"
+                            key={cursoCodigo + idx}
+                            onMouseEnter={(e) => {
+                              const el = e.currentTarget as HTMLElement;
+                              const rect = el.getBoundingClientRect();
+                              // position tooltip to the right of the cube, aligned to its top
+                              setTooltipPos({ left: Math.min(rect.right + 8, window.innerWidth - 180), top: rect.top });
+                              setTooltipPrereqs(prereqs);
+                              setHoveredKey(cubeKey);
+                            }}
+                            onMouseLeave={() => {
+                              setHoveredKey(null);
+                              setTooltipPos(null);
+                              setTooltipPrereqs([]);
+                            }}
+                            style={{
+                              position: 'relative',
+                              width: '85%',
+                              minHeight: '80px',
+                              borderRadius: 4,
+                              background: bgColor,
+                              border: `2px solid ${borderColor}`,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              justifyContent: 'space-between',
+                              cursor: 'pointer',
+                              transition: 'transform 160ms ease, box-shadow 160ms ease, opacity 200ms ease, filter 200ms ease',
+                              boxShadow: boxShadowValue,
+                              transform: transformValue,
+                              opacity: isFaded ? 0.38 : 1,
+                              filter: isFaded ? 'grayscale(80%) blur(1px)' : 'none',
+                            }}
+                          >
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                              <div style={{ fontWeight: 700, fontSize: 10, color: '#374151', wordBreak: 'break-word' }}>
+                                {curso.asignatura || curso.nombre || 'Sin nombre'}
+                              </div>
+                              <div style={{ fontSize: 9, color: '#6b7280', marginTop: 2, lineHeight: 1.2, wordBreak: 'break-word' }}>
+                                {cursoCodigo }
+                              </div>
+                            </div>
+                            <div style={{ fontSize: 8, padding: '2px 4px', borderRadius: 3, background: statusBgColor, color: statusTextColor, textAlign: 'center', fontWeight: 600, marginTop: 6 }}>
+                              {statusStr.includes('aprob') ? '✓ APROB' : statusStr.includes('reprob') || statusStr.includes('repr') ? '✗ REPROB' : '—'}
+                            </div>
+
+                            {/* prerequisites tooltip is rendered globally (fixed) below to avoid clipping/z-index issues */}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+                );
+              })
+            }
+          </div>
+        )}
+
+  {!loading && decorated.length === 0 && (
+          <div style={{ padding: 24, background: '#fff', borderRadius: 8, textAlign: 'center', color: '#6b7280' }}>
+            No hay ramos para los filtros seleccionados
+          </div>
         )}
       </main>
     </div>

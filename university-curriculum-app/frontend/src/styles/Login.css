@@ -75,6 +75,17 @@ body.body-bg {
     max-width: 400px;
     width: 100%;
 }
+
+@media (min-width: 1024px) {
+    .main-container {
+        justify-content: center;
+        padding: 48px 60px;
+    }
+    .main-content {
+        flex: 0 0 auto;
+        max-width: 420px;
+    }
+}
 .logo-title {
     text-align: center;
 }

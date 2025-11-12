@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import "../styles/Login.css";
+
 
 interface UserData {
   rut: string;
@@ -16,18 +16,6 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState<{ type: "info" | "success" | "error"; message: string } | null>(null);
-
-  // Email validation on blur
-  const handleEmailBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const el = e.target;
-    if (el.value && !el.value.includes("@universidad.edu")) {
-      el.style.borderColor = "#ef4444";
-      el.style.backgroundColor = "#fef2f2";
-    } else {
-      el.style.borderColor = "#d1d5db";
-      el.style.backgroundColor = "rgba(255,255,255,0.8)";
-    }
-  };
 
   // Form submit handler
   const handleSubmit = async (e: React.FormEvent) => {
@@ -78,54 +66,46 @@ const Login: React.FC = () => {
     }
   };
 
-  // Status message class
-  const getStatusClass = () => {
-    if (!status) return "status-message hidden";
-    if (status.type === "info") return "status-message";
-    if (status.type === "success") return "status-message status-success";
-    if (status.type === "error") return "status-message status-error";
-    return "status-message";
-  };
-
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", background: "#f5f5f5" }}>
-      <div style={{ width: "100%", maxWidth: 480, margin: "0 auto" }}>
-        <header style={{ textAlign: "center", marginBottom: 32 }}>
-          <h1 style={{ fontSize: 36, fontWeight: "bold", color: "#2563eb", marginBottom: 8 }}>Universidad</h1>
-          <p style={{ fontSize: 18, color: "#555" }}>Portal Académico</p>
+    <div style={{ minHeight: "100vh"}}>
+      <div style={{ width: "100%", maxWidth: "400px" }}>
+        <header style={{ textAlign: "center", marginBottom: 24 }}>
+          <h1 style={{ fontSize: 28, fontWeight: "bold", color: "#2563eb", marginBottom: 4 }}>Universidad</h1>
+          <p style={{ fontSize: 14, color: "#6b7280", margin: 0 }}>Portal Académico</p>
         </header>
-        <div style={{ background: "#fff", borderRadius: 12, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", padding: 40 }}>
+
+        <div style={{ background: "#fff", borderRadius: 12, boxShadow: "0 4px 16px rgba(223, 44, 44, 0.1)", padding: 32, border: "1px solid #e0e7ff" }}>
           <form autoComplete="off" onSubmit={handleSubmit}>
-            <div style={{ marginBottom: 24 }}>
-              <label htmlFor="email" style={{ display: "block", fontWeight: 500, marginBottom: 8, color: "#2563eb" }}>Correo institucional</label>
+            <div style={{ marginBottom: 20 }}>
+              <label htmlFor="email" style={{ display: "block", fontWeight: 600, marginBottom: 6, color: "#1e293b", fontSize: 14 }}>Correo institucional</label>
               <input
                 id="email"
                 name="email"
                 type="email"
                 required
-                style={{ width: "100%", fontSize: 18, color: "#2563eb", padding: "12px 16px", borderRadius: 8, border: "1px solid #d1d5db" }}
+                style={{ width: "100%", fontSize: 14, padding: "10px 12px", borderRadius: 6, border: "1px solid #d1d5db", boxSizing: "border-box", transition: "border-color 0.2s" }}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                onBlur={handleEmailBlur}
                 placeholder="pedro@example.com"
               />
             </div>
-            <div style={{ marginBottom: 24 }}>
-              <label htmlFor="password" style={{ display: "block", fontWeight: 500, marginBottom: 8, color: "#2563eb" }}>Contraseña</label>
-              <div style={{ display: "flex", alignItems: "center" }}>
+
+            <div style={{ marginBottom: 20 }}>
+              <label htmlFor="password" style={{ display: "block", fontWeight: 600, marginBottom: 6, color: "#1e293b", fontSize: 14 }}>Contraseña</label>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
                   required
-                  style={{ flex: 1, fontSize: 18, color: "#2563eb", padding: "12px 16px", borderRadius: 8, border: "1px solid #d1d5db" }}
+                  style={{ flex: 1, fontSize: 14, padding: "10px 12px", borderRadius: 6, border: "1px solid #d1d5db", boxSizing: "border-box" }}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="qwerty"
+                  placeholder="tu contraseña"
                 />
                 <button
                   type="button"
-                  style={{ marginLeft: 8, background: "none", border: "none", cursor: "pointer", color: "#2563eb", fontSize: 20 }}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, padding: 0, color: "#6b7280" }}
                   tabIndex={-1}
                   onClick={() => setShowPassword(s => !s)}
                   aria-label="Mostrar/Ocultar contraseña"
@@ -134,28 +114,32 @@ const Login: React.FC = () => {
                 </button>
               </div>
             </div>
-            <div style={{ display: "flex", alignItems: "center", marginBottom: 24 }}>
-              <input id="remember" name="remember" type="checkbox" style={{ marginRight: 8 }} />
-              <label htmlFor="remember" style={{ fontSize: 16, color: "#2563eb"}}>Recordar sesión</label>
-              <div style={{ marginLeft: "auto" }}>
-                <a href="#" style={{ fontSize: 15, color: "#2563eb", textDecoration: "none" }}>¿Olvidaste tu contraseña?</a>
-              </div>
-            </div>
-            <button type="submit" style={{ width: "100%", padding: "14px 0", fontSize: 20, fontWeight: "bold", color: "#fff", background: "#2563eb", border: "none", borderRadius: 8, cursor: "pointer", boxShadow: "0 2px 8px rgba(37,99,235,0.12)" }}>
+
+            <button type="submit" style={{ width: "100%", padding: "10px 0", fontSize: 15, fontWeight: "600", color: "#fff", background: "linear-gradient(135deg, #2563eb, #1d4ed8)", border: "none", borderRadius: 6, cursor: "pointer", transition: "transform 0.2s" }}>
               Iniciar Sesión
             </button>
-            <div style={{ marginTop: 24 }} className={getStatusClass()}>{status?.message}</div>
+
+            {status && (
+              <div style={{ 
+                marginTop: 16, 
+                padding: 12, 
+                borderRadius: 6, 
+                fontSize: 13,
+                textAlign: "center",
+                background: status.type === "success" ? "#dcfce7" : status.type === "error" ? "#fee2e2" : "#dbeafe",
+                color: status.type === "success" ? "#15803d" : status.type === "error" ? "#b91c1c" : "#0c4a6e"
+              }}>
+                {status.message}
+              </div>
+            )}
           </form>
-          <div style={{ marginTop: 32, textAlign: "center", fontSize: 15, color: "#555" }}>
-            <p>¿Problemas para acceder? <a href="#" style={{ color: "#2563eb" }}>Contacta al administrador</a></p>
-            <p style={{ fontSize: 13, marginTop: 8 }}>Para estudiantes nuevos: Tu usuario es tu RUT y tu contraseña inicial es tu fecha de nacimiento (DDMMAAAA)</p>
-          </div>
+        </div>
+
+        <div style={{ textAlign: "center", fontSize: 12, color: "#6b7280", marginTop: 20 }}>
+          <p style={{ margin: 0 }}>¿Olvidaste tu contraseña? <a href="#" style={{ color: "#2563eb", textDecoration: "none", fontWeight: 600 }}>Recuperar acceso</a></p>
+          <p style={{ margin: "8px 0 0 0", fontSize: 11 }}>&copy; 2025 Universidad. Todos los derechos reservados.</p>
         </div>
       </div>
-      <footer style={{ textAlign: "center", marginTop: 32, color: "#888", fontSize: 14 }}>
-        <p>&copy; 2024 Universidad. Todos los derechos reservados.</p>
-        <p>Sistema Académico v2.1 | Soporte: soporte@universidad.edu</p>
-      </footer>
     </div>
   );
 };
