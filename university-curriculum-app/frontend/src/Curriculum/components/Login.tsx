@@ -1,6 +1,4 @@
-
 import React, { useState } from "react";
-
 
 interface UserData {
   rut: string;
