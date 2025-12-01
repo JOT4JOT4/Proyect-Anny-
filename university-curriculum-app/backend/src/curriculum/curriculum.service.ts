@@ -1,6 +1,10 @@
 import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Course, CourseDocument } from '../schemas/course.schema';
+import { Malla, MallaDocument } from '../schemas/malla.schema';
 
 interface Carrera {
   codigo: string;
@@ -62,7 +66,11 @@ export class CurriculumService {
         return null;
     }
 
-    constructor(private readonly httpService: HttpService) {}
+    constructor(
+        private readonly httpService: HttpService,
+        @InjectModel(Course.name) private courseModel: Model<CourseDocument>,
+        @InjectModel(Malla.name) private mallaModel: Model<MallaDocument>,
+      ) {}
 
     async getCombinedCurriculum(email: string, password: string) {
         try {
@@ -126,6 +134,26 @@ export class CurriculumService {
       }
       throw new InternalServerErrorException('Error al obtener los datos curriculares');
     }
+  }
+
+  private async upsertCourses(courses: Partial<Course & { codigo?: string }>[]) {
+    await Promise.all(
+      courses.map((c) =>
+        this.courseModel.updateOne({ codigo: c.codigo }, { $set: c }, { upsert: true }).exec(),
+      ),
+    );
+  }
+
+  private async saveMalla(carreraKey: string, catalogo: string, cursos: Partial<Course & { codigo?: string }>[]) {
+    // persistir cursos primero
+    await this.upsertCourses(cursos);
+    // persistir malla (guardando códigos)
+    const cursoCodigos = cursos.map((c) => c.codigo);
+    return this.mallaModel.findOneAndUpdate(
+      { carreraKey, catalogo },
+      { $set: { carreraKey, catalogo, cursos: cursoCodigos } },
+      { upsert: true, new: true },
+    ).exec();
   }
     
 

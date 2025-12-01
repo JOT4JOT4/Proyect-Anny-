@@ -1,10 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Course, CourseDocument } from '../schemas/course.schema';
+import { Malla, MallaDocument } from '../schemas/malla.schema';
 
 @Injectable()
 export class MallasService {
-  constructor(private readonly httpService: HttpService) {}
+  constructor(
+    private readonly httpService: HttpService,
+    @InjectModel(Course.name) private courseModel: Model<CourseDocument>,
+    @InjectModel(Malla.name) private mallaModel: Model<MallaDocument>,
+  ) {}
 
   async getMalla(codigo: string, catalogo: string) {
     const key = `${codigo}-${catalogo}`;
@@ -31,5 +39,19 @@ export class MallasService {
     } catch (err) {
       throw new Error('Error fetching avance');
     }
+  }
+
+  async persistMalla(carreraKey: string, catalogo: string, cursos: Partial<Course & { codigo?: string }>[]) {
+    // upsert cursos
+    await Promise.all(
+      cursos.map((c) => this.courseModel.updateOne({ codigo: c.codigo }, { $set: c }, { upsert: true }).exec()),
+    );
+    // guardar malla con códigos
+    const cursoCodigos = cursos.map((c) => c.codigo);
+    return this.mallaModel.findOneAndUpdate(
+      { carreraKey, catalogo },
+      { $set: { carreraKey, catalogo, cursos: cursoCodigos } },
+      { upsert: true, new: true },
+    ).exec();
   }
 }
