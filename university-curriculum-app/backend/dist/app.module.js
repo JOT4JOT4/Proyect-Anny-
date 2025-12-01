@@ -11,11 +11,19 @@ const common_1 = require("@nestjs/common");
 const curriculum_module_1 = require("./curriculum/curriculum.module");
 const auth_module_1 = require("./auth/auth.module");
 const mallas_module_1 = require("./mallas/mallas.module");
+const mongoose_1 = require("@nestjs/mongoose");
+const users_module_1 = require("./users/users.module");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [curriculum_module_1.CurriculumModule, auth_module_1.AuthModule, mallas_module_1.MallasModule],
+        imports: [
+            mongoose_1.MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://localhost:27017/university_curriculum', {}),
+            curriculum_module_1.CurriculumModule,
+            auth_module_1.AuthModule,
+            mallas_module_1.MallasModule,
+            users_module_1.UsersModule,
+        ],
         controllers: [],
         providers: [],
     })

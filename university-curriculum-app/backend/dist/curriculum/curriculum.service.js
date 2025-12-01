@@ -8,11 +8,18 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CurriculumService = void 0;
 const common_1 = require("@nestjs/common");
 const axios_1 = require("@nestjs/axios");
 const rxjs_1 = require("rxjs");
+const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
+const course_schema_1 = require("../schemas/course.schema");
+const malla_schema_1 = require("../schemas/malla.schema");
 const HAWAII_AUTH_TOKEN = 'jf400fejof13f';
 let CurriculumService = class CurriculumService {
     findAll() {
@@ -40,8 +47,10 @@ let CurriculumService = class CurriculumService {
         }
         return null;
     }
-    constructor(httpService) {
+    constructor(httpService, courseModel, mallaModel) {
         this.httpService = httpService;
+        this.courseModel = courseModel;
+        this.mallaModel = mallaModel;
         this.curriculums = [];
     }
     async getCombinedCurriculum(email, password) {
@@ -95,10 +104,22 @@ let CurriculumService = class CurriculumService {
             throw new common_1.InternalServerErrorException('Error al obtener los datos curriculares');
         }
     }
+    async upsertCourses(courses) {
+        await Promise.all(courses.map((c) => this.courseModel.updateOne({ codigo: c.codigo }, { $set: c }, { upsert: true }).exec()));
+    }
+    async saveMalla(carreraKey, catalogo, cursos) {
+        await this.upsertCourses(cursos);
+        const cursoCodigos = cursos.map((c) => c.codigo);
+        return this.mallaModel.findOneAndUpdate({ carreraKey, catalogo }, { $set: { carreraKey, catalogo, cursos: cursoCodigos } }, { upsert: true, new: true }).exec();
+    }
 };
 CurriculumService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [axios_1.HttpService])
+    __param(1, (0, mongoose_1.InjectModel)(course_schema_1.Course.name)),
+    __param(2, (0, mongoose_1.InjectModel)(malla_schema_1.Malla.name)),
+    __metadata("design:paramtypes", [axios_1.HttpService,
+        mongoose_2.Model,
+        mongoose_2.Model])
 ], CurriculumService);
 exports.CurriculumService = CurriculumService;
 //# sourceMappingURL=curriculum.service.js.map
