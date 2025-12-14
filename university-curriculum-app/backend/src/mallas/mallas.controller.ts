@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, Post, Body } from '@nestjs/common';
 import { MallasService } from './mallas.service';
 
 @Controller('mallas')
@@ -15,5 +15,10 @@ export class MallasController {
   @Get('avance')
   async getAvance(@Query('rut') rut: string, @Query('codcarrera') codcarrera: string) {
     return this.mallasService.getAvance(rut, codcarrera);
+  }
+
+  @Post('optimize-plan')
+  getOptimizedPlan(@Body() body: any) {
+    return this.mallasService.generatePlan(body);
   }
 }

@@ -25,6 +25,9 @@ let MallasController = class MallasController {
     async getAvance(rut, codcarrera) {
         return this.mallasService.getAvance(rut, codcarrera);
     }
+    getOptimizedPlan(body) {
+        return this.mallasService.generatePlan(body);
+    }
 };
 __decorate([
     (0, common_1.Get)(':codigo/:catalogo'),
@@ -42,6 +45,13 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], MallasController.prototype, "getAvance", null);
+__decorate([
+    (0, common_1.Post)('optimize-plan'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], MallasController.prototype, "getOptimizedPlan", null);
 MallasController = __decorate([
     (0, common_1.Controller)('mallas'),
     __metadata("design:paramtypes", [mallas_service_1.MallasService])

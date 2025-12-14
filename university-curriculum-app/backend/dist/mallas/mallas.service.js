@@ -13,6 +13,7 @@ exports.MallasService = void 0;
 const common_1 = require("@nestjs/common");
 const axios_1 = require("@nestjs/axios");
 const rxjs_1 = require("rxjs");
+const plan_calculator_util_1 = require("./plan-calculator.util");
 let MallasService = class MallasService {
     constructor(httpService) {
         this.httpService = httpService;
@@ -41,6 +42,20 @@ let MallasService = class MallasService {
         catch (err) {
             throw new Error('Error fetching avance');
         }
+    }
+    generatePlan(data) {
+        const { mergedCourses, approvedCodes, creditLimit, manuallyInscribedCodes } = data;
+        const approvedSet = new Set(approvedCodes);
+        const manualSet = new Set(manuallyInscribedCodes);
+        const parsePrereqsLogic = (curso) => {
+            if (Array.isArray(curso.requisitos)) {
+                return curso.requisitos.map(req => ({
+                    code: typeof req === 'string' ? req : req.codigo
+                }));
+            }
+            return [];
+        };
+        return (0, plan_calculator_util_1.calculateOptimizedPlan)(mergedCourses, approvedSet, parsePrereqsLogic, creditLimit, manualSet);
     }
 };
 MallasService = __decorate([

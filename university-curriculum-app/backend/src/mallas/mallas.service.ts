@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { calculateOptimizedPlan, OptimizedPlan } from './plan-calculator.util'; 
 
 @Injectable()
 export class MallasService {
@@ -31,5 +32,32 @@ export class MallasService {
     } catch (err) {
       throw new Error('Error fetching avance');
     }
+  }
+
+
+  // Método plan optimizado
+  generatePlan(data: any): OptimizedPlan { 
+    const { mergedCourses, approvedCodes, creditLimit, manuallyInscribedCodes } = data;
+
+    const approvedSet = new Set<string>(approvedCodes);
+    const manualSet = new Set<string>(manuallyInscribedCodes);
+
+
+    const parsePrereqsLogic = (curso: any) => {
+        if (Array.isArray(curso.requisitos)) {
+            return curso.requisitos.map(req => ({ 
+                code: typeof req === 'string' ? req : req.codigo 
+            }));
+        }
+        return [];
+    };
+
+    return calculateOptimizedPlan(
+      mergedCourses,
+      approvedSet,
+      parsePrereqsLogic, 
+      creditLimit,
+      manualSet
+    );
   }
 }

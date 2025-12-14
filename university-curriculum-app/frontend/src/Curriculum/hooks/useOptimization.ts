@@ -1,37 +1,76 @@
 import { useState, useMemo, useEffect } from 'react';
-import { calculateOptimizedPlan, type OptimizedPlan } from '../utils/Optimizador';
-import type { MergedCourse, Prereq, Course } from '../types';
+import type { MergedCourse } from '../types';
+
+export type OptimizedPlan = Record<string, {
+    codigo: string;
+    nombre: string;
+    creditos: number;
+    nivel: string;
+}[]>;
 
 export const useOptimization = (
   merged: MergedCourse[],
   currentApprovedCodes: Set<string>,
-  parsePrereqs: (curso: Course) => Prereq[],
   creditLimit: number,
   manuallyInscribedCodes: Set<string>,
   selectedCareerKey: string | null 
 ) => {
   const [isOptimizedView, setIsOptimizedView] = useState<boolean>(false);
+  
+  const [optimizedPlan, setOptimizedPlan] = useState<OptimizedPlan>({});
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Resetear vista optimizada si cambia la carrera
   useEffect(() => {
     setIsOptimizedView(false);
+    setOptimizedPlan({}); 
   }, [selectedCareerKey]);
 
-  const optimizedPlan = useMemo<OptimizedPlan>(() => {
-    if (merged.length > 0) {
-        return calculateOptimizedPlan(
-            merged, 
-            currentApprovedCodes, 
-            parsePrereqs, 
-            creditLimit,
-            manuallyInscribedCodes
-        );
-    }
-    return {};
-  }, [merged, currentApprovedCodes, parsePrereqs, creditLimit, manuallyInscribedCodes]);
+
+  useEffect(() => {
+    if (merged.length === 0) return;
+
+    const fetchOptimizedPlan = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await fetch('http://localhost:3000/mallas/optimize-plan', { 
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            mergedCourses: merged,
+            creditLimit: creditLimit,
+            approvedCodes: Array.from(currentApprovedCodes),
+            manuallyInscribedCodes: Array.from(manuallyInscribedCodes)
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al calcular el plan');
+        }
+
+        const data: OptimizedPlan = await response.json();
+        setOptimizedPlan(data);
+      } catch (err) {
+        console.error(err);
+        setError('No se pudo optimizar el plan.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+        fetchOptimizedPlan();
+    }, 300); 
+
+    return () => clearTimeout(timeoutId);
+
+  }, [merged, currentApprovedCodes, creditLimit, manuallyInscribedCodes]);
 
   const optimizedCourseMap = useMemo(() => {
-    const map = new Map<string, string>(); // [courseCode, semester]
+    const map = new Map<string, string>(); 
     if (!isOptimizedView || !optimizedPlan) return map;
     
     Object.entries(optimizedPlan).forEach(([semester, courses]) => {
@@ -52,6 +91,8 @@ export const useOptimization = (
     setIsOptimizedView,
     optimizedPlan,
     optimizedCourseMap,
-    totalOptimizedSemesters
+    totalOptimizedSemesters,
+    isLoading, 
+    error    
   };
 };

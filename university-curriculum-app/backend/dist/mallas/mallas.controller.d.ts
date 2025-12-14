@@ -4,4 +4,5 @@ export declare class MallasController {
     constructor(mallasService: MallasService);
     getMalla(codigo: string, catalogo: string): Promise<any>;
     getAvance(rut: string, codcarrera: string): Promise<any>;
+    getOptimizedPlan(body: any): import("./plan-calculator.util").OptimizedPlan;
 }
