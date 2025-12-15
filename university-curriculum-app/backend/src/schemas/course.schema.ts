@@ -7,6 +7,7 @@ export class Course {
   @Prop({ required: true, unique: true }) codigo: string;
   @Prop() nombre: string;
   @Prop() creditos: number;
+  @Prop() nivel?: number;
   @Prop({ type: [String], default: [] }) prerequisitos: string[];
 }
 

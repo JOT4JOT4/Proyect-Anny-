@@ -23,16 +23,15 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
 import { Document } from 'mongoose';
-export type CourseDocument = Course & Document;
-export declare class Course {
-    codigo: string;
-    nombre: string;
-    creditos: number;
-    nivel?: number;
-    prerequisitos: string[];
+export type CredentialDocument = Credential & Document;
+export declare class Credential {
+    email: string;
+    password: string;
+    rut: string;
+    carreras: any[];
 }
-export declare const CourseSchema: import("mongoose").Schema<Course, import("mongoose").Model<Course, any, any, any, Document<unknown, any, Course> & Course & {
+export declare const CredentialSchema: import("mongoose").Schema<Credential, import("mongoose").Model<Credential, any, any, any, Document<unknown, any, Credential> & Credential & {
     _id: import("mongoose").Types.ObjectId;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Course, Document<unknown, {}, import("mongoose").FlatRecord<Course>> & import("mongoose").FlatRecord<Course> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Credential, Document<unknown, {}, import("mongoose").FlatRecord<Credential>> & import("mongoose").FlatRecord<Credential> & {
     _id: import("mongoose").Types.ObjectId;
 }>;

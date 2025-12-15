@@ -9,33 +9,45 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CourseSchema = exports.Course = void 0;
+exports.AvanceSchema = exports.Avance = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
-let Course = class Course {
+let Avance = class Avance {
 };
 __decorate([
-    (0, mongoose_1.Prop)({ required: true, unique: true }),
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
-], Course.prototype, "codigo", void 0);
+], Avance.prototype, "nrc", void 0);
 __decorate([
     (0, mongoose_1.Prop)(),
     __metadata("design:type", String)
-], Course.prototype, "nombre", void 0);
+], Avance.prototype, "period", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], Avance.prototype, "student", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], Avance.prototype, "course", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: false }),
+    __metadata("design:type", Boolean)
+], Avance.prototype, "excluded", void 0);
 __decorate([
     (0, mongoose_1.Prop)(),
-    __metadata("design:type", Number)
-], Course.prototype, "creditos", void 0);
+    __metadata("design:type", String)
+], Avance.prototype, "inscriptionType", void 0);
 __decorate([
     (0, mongoose_1.Prop)(),
-    __metadata("design:type", Number)
-], Course.prototype, "nivel", void 0);
+    __metadata("design:type", String)
+], Avance.prototype, "status", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [String], default: [] }),
-    __metadata("design:type", Array)
-], Course.prototype, "prerequisitos", void 0);
-Course = __decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], Avance.prototype, "codcarrera", void 0);
+Avance = __decorate([
     (0, mongoose_1.Schema)()
-], Course);
-exports.Course = Course;
-exports.CourseSchema = mongoose_1.SchemaFactory.createForClass(Course);
-//# sourceMappingURL=course.schema.js.map
+], Avance);
+exports.Avance = Avance;
+exports.AvanceSchema = mongoose_1.SchemaFactory.createForClass(Avance);
+//# sourceMappingURL=avance.schema.js.map

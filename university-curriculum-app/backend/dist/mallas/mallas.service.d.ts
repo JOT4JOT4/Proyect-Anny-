@@ -26,11 +26,13 @@ import { HttpService } from '@nestjs/axios';
 import { Model } from 'mongoose';
 import { Course, CourseDocument } from '../schemas/course.schema';
 import { Malla, MallaDocument } from '../schemas/malla.schema';
+import { AvanceDocument } from '../schemas/avance.schema';
 export declare class MallasService {
     private readonly httpService;
     private courseModel;
     private mallaModel;
-    constructor(httpService: HttpService, courseModel: Model<CourseDocument>, mallaModel: Model<MallaDocument>);
+    private avanceModel;
+    constructor(httpService: HttpService, courseModel: Model<CourseDocument>, mallaModel: Model<MallaDocument>, avanceModel: Model<AvanceDocument>);
     getMalla(codigo: string, catalogo: string): Promise<any>;
     getAvance(rut: string, codcarrera: string): Promise<any>;
     persistMalla(carreraKey: string, catalogo: string, cursos: Partial<Course & {

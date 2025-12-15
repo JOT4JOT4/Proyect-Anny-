@@ -23,16 +23,19 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
 import { Document } from 'mongoose';
-export type CourseDocument = Course & Document;
-export declare class Course {
-    codigo: string;
-    nombre: string;
-    creditos: number;
-    nivel?: number;
-    prerequisitos: string[];
+export type AvanceDocument = Avance & Document;
+export declare class Avance {
+    nrc: string;
+    period: string;
+    student: string;
+    course: string;
+    excluded: boolean;
+    inscriptionType: string;
+    status: string;
+    codcarrera: string;
 }
-export declare const CourseSchema: import("mongoose").Schema<Course, import("mongoose").Model<Course, any, any, any, Document<unknown, any, Course> & Course & {
+export declare const AvanceSchema: import("mongoose").Schema<Avance, import("mongoose").Model<Avance, any, any, any, Document<unknown, any, Avance> & Avance & {
     _id: import("mongoose").Types.ObjectId;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Course, Document<unknown, {}, import("mongoose").FlatRecord<Course>> & import("mongoose").FlatRecord<Course> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Avance, Document<unknown, {}, import("mongoose").FlatRecord<Avance>> & import("mongoose").FlatRecord<Avance> & {
     _id: import("mongoose").Types.ObjectId;
 }>;

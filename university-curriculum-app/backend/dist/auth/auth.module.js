@@ -11,11 +11,13 @@ const common_1 = require("@nestjs/common");
 const axios_1 = require("@nestjs/axios");
 const auth_controller_1 = require("./auth.controller");
 const auth_service_1 = require("./auth.service");
+const mongoose_1 = require("@nestjs/mongoose");
+const credential_schema_1 = require("../schemas/credential.schema");
 let AuthModule = class AuthModule {
 };
 AuthModule = __decorate([
     (0, common_1.Module)({
-        imports: [axios_1.HttpModule],
+        imports: [axios_1.HttpModule, mongoose_1.MongooseModule.forFeature([{ name: credential_schema_1.Credential.name, schema: credential_schema_1.CredentialSchema }])],
         controllers: [auth_controller_1.AuthController],
         providers: [auth_service_1.AuthService],
         exports: [auth_service_1.AuthService],

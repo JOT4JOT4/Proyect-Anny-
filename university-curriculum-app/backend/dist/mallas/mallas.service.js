@@ -20,13 +20,23 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const course_schema_1 = require("../schemas/course.schema");
 const malla_schema_1 = require("../schemas/malla.schema");
+const avance_schema_1 = require("../schemas/avance.schema");
 let MallasService = class MallasService {
-    constructor(httpService, courseModel, mallaModel) {
+    constructor(httpService, courseModel, mallaModel, avanceModel) {
         this.httpService = httpService;
         this.courseModel = courseModel;
         this.mallaModel = mallaModel;
+        this.avanceModel = avanceModel;
     }
     async getMalla(codigo, catalogo) {
+        if (process.env.LOCAL_MALLAS === 'true') {
+            const carreraKey = `${codigo}-${catalogo}`;
+            const m = await this.mallaModel.findOne({ carreraKey }).lean();
+            if (!m)
+                return [];
+            const cursos = await this.courseModel.find({ codigo: { $in: m.cursos } }).lean();
+            return cursos.map((c) => ({ codigo: c.codigo, asignatura: c.nombre, creditos: c.creditos || 0, nivel: c.nivel || 0, prereq: (c.prerequisitos || []).join(',') }));
+        }
         const key = `${codigo}-${catalogo}`;
         const url = `https://losvilos.ucn.cl/hawaii/api/mallas?${key}`;
         try {
@@ -42,6 +52,12 @@ let MallasService = class MallasService {
         }
     }
     async getAvance(rut, codcarrera) {
+        if (process.env.LOCAL_MALLAS === 'true') {
+            const docs = await this.avanceModel.find({ student: rut, codcarrera }).lean();
+            if (!docs || docs.length === 0)
+                return { error: 'Avance no encontrado' };
+            return docs;
+        }
         const url = `https://puclaro.ucn.cl/eross/avance/avance.php?rut=${encodeURIComponent(rut)}&codcarrera=${encodeURIComponent(codcarrera)}`;
         try {
             const response = await (0, rxjs_1.firstValueFrom)(this.httpService.get(url));
@@ -61,7 +77,9 @@ MallasService = __decorate([
     (0, common_1.Injectable)(),
     __param(1, (0, mongoose_1.InjectModel)(course_schema_1.Course.name)),
     __param(2, (0, mongoose_1.InjectModel)(malla_schema_1.Malla.name)),
+    __param(3, (0, mongoose_1.InjectModel)(avance_schema_1.Avance.name)),
     __metadata("design:paramtypes", [axios_1.HttpService,
+        mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model])
 ], MallasService);
