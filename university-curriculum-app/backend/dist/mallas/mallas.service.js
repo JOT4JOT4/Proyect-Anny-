@@ -20,6 +20,7 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const course_schema_1 = require("../schemas/course.schema");
 const malla_schema_1 = require("../schemas/malla.schema");
+const plan_calculator_util_1 = require("./plan-calculator.util");
 let MallasService = class MallasService {
     constructor(httpService, courseModel, mallaModel) {
         this.httpService = httpService;
@@ -51,6 +52,22 @@ let MallasService = class MallasService {
             throw new Error('Error fetching avance');
         }
     }
+    generatePlan(data) {
+        const { mergedCourses, approvedCodes, creditLimit, manuallyInscribedCodes } = data;
+        const approvedSet = new Set(approvedCodes);
+        const manualSet = new Set(manuallyInscribedCodes);
+        const parsePrereqsLogic = (curso) => {
+            if (Array.isArray(curso.requisitos)) {
+                return curso.requisitos.map(req => ({
+                    code: typeof req === 'string' ? req : req.codigo
+                }));
+            }
+            return [];
+        };
+        return (0, plan_calculator_util_1.calculateOptimizedPlan)(mergedCourses, approvedSet, parsePrereqsLogic, creditLimit, manualSet);
+
+    }
+
     async persistMalla(carreraKey, catalogo, cursos) {
         await Promise.all(cursos.map((c) => this.courseModel.updateOne({ codigo: c.codigo }, { $set: c }, { upsert: true }).exec()));
         const cursoCodigos = cursos.map((c) => c.codigo);

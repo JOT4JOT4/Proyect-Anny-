@@ -43,9 +43,20 @@ const Curriculum: React.FC = () => {
 
   // Estado de optimización
   const {
-    isOptimizedView, setIsOptimizedView,
-    optimizedCourseMap, totalOptimizedSemesters
-  } = useOptimization(merged, currentApprovedCodes, parsePrereqs, creditLimit, manuallyInscribedCodes, selectedCareerKey);
+    isOptimizedView, 
+    setIsOptimizedView,
+    optimizedCourseMap, 
+    totalOptimizedSemesters,
+    isLoading, 
+    error: optimizationError      
+  } = useOptimization(
+      merged, 
+      currentApprovedCodes, 
+      // parsePrereqs,  
+      creditLimit, 
+      manuallyInscribedCodes, 
+      selectedCareerKey
+  );
   
   // Estado UI 
   const {

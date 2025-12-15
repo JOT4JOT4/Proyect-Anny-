@@ -26,6 +26,7 @@ import { HttpService } from '@nestjs/axios';
 import { Model } from 'mongoose';
 import { Course, CourseDocument } from '../schemas/course.schema';
 import { Malla, MallaDocument } from '../schemas/malla.schema';
+import { OptimizedPlan } from './plan-calculator.util';
 export declare class MallasService {
     private readonly httpService;
     private courseModel;
@@ -38,4 +39,5 @@ export declare class MallasService {
     }>[]): Promise<import("mongoose").Document<unknown, {}, MallaDocument> & Malla & import("mongoose").Document<any, any, any> & {
         _id: import("mongoose").Types.ObjectId;
     }>;
+    generatePlan(data: any): OptimizedPlan;
 }

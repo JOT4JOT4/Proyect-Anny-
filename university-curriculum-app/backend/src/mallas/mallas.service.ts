@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Course, CourseDocument } from '../schemas/course.schema';
 import { Malla, MallaDocument } from '../schemas/malla.schema';
+import { calculateOptimizedPlan, OptimizedPlan } from './plan-calculator.util'; 
 
 @Injectable()
 export class MallasService {
@@ -53,5 +54,32 @@ export class MallasService {
       { $set: { carreraKey, catalogo, cursos: cursoCodigos } },
       { upsert: true, new: true },
     ).exec();
+  }
+
+    // Método plan optimizado
+  generatePlan(data: any): OptimizedPlan { 
+    const { mergedCourses, approvedCodes, creditLimit, manuallyInscribedCodes } = data;
+
+    const approvedSet = new Set<string>(approvedCodes);
+    const manualSet = new Set<string>(manuallyInscribedCodes);
+
+
+    const parsePrereqsLogic = (curso: any) => {
+        if (Array.isArray(curso.requisitos)) {
+            return curso.requisitos.map(req => ({ 
+                code: typeof req === 'string' ? req : req.codigo 
+            }));
+        }
+        return [];
+    };
+
+    return calculateOptimizedPlan(
+      mergedCourses,
+      approvedSet,
+      parsePrereqsLogic, 
+      creditLimit,
+      manualSet
+    );
+
   }
 }
