@@ -52,6 +52,11 @@ let MallasService = class MallasService {
             throw new Error('Error fetching avance');
         }
     }
+    async persistMalla(carreraKey, catalogo, cursos) {
+        await Promise.all(cursos.map((c) => this.courseModel.updateOne({ codigo: c.codigo }, { $set: c }, { upsert: true }).exec()));
+        const cursoCodigos = cursos.map((c) => c.codigo);
+        return this.mallaModel.findOneAndUpdate({ carreraKey, catalogo }, { $set: { carreraKey, catalogo, cursos: cursoCodigos } }, { upsert: true, new: true }).exec();
+    }
     generatePlan(data) {
         const { mergedCourses, approvedCodes, creditLimit, manuallyInscribedCodes } = data;
         const approvedSet = new Set(approvedCodes);
@@ -65,13 +70,6 @@ let MallasService = class MallasService {
             return [];
         };
         return (0, plan_calculator_util_1.calculateOptimizedPlan)(mergedCourses, approvedSet, parsePrereqsLogic, creditLimit, manualSet);
-
-    }
-
-    async persistMalla(carreraKey, catalogo, cursos) {
-        await Promise.all(cursos.map((c) => this.courseModel.updateOne({ codigo: c.codigo }, { $set: c }, { upsert: true }).exec()));
-        const cursoCodigos = cursos.map((c) => c.codigo);
-        return this.mallaModel.findOneAndUpdate({ carreraKey, catalogo }, { $set: { carreraKey, catalogo, cursos: cursoCodigos } }, { upsert: true, new: true }).exec();
     }
 };
 MallasService = __decorate([

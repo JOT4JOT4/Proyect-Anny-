@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MallasModule = void 0;
 const common_1 = require("@nestjs/common");
+const axios_1 = require("@nestjs/axios");
 const mallas_service_1 = require("./mallas.service");
 const mallas_controller_1 = require("./mallas.controller");
 const mongoose_1 = require("@nestjs/mongoose");
@@ -18,6 +19,7 @@ let MallasModule = class MallasModule {
 MallasModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            axios_1.HttpModule,
             mongoose_1.MongooseModule.forFeature([{ name: course_schema_1.Course.name, schema: course_schema_1.CourseSchema }, { name: malla_schema_1.Malla.name, schema: malla_schema_1.MallaSchema }]),
         ],
         controllers: [mallas_controller_1.MallasController],

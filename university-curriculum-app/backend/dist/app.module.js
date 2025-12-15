@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
+const axios_1 = require("@nestjs/axios");
 const auth_module_1 = require("./auth/auth.module");
 const mallas_module_1 = require("./mallas/mallas.module");
 const mongoose_1 = require("@nestjs/mongoose");
@@ -17,8 +18,8 @@ let AppModule = class AppModule {
 AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            axios_1.HttpModule.register({}),
             mongoose_1.MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://localhost:27017/university_curriculum', {}),
-            curriculum_module_1.CurriculumModule,
             auth_module_1.AuthModule,
             mallas_module_1.MallasModule,
             users_module_1.UsersModule,
