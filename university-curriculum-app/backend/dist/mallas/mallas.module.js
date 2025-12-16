@@ -15,6 +15,7 @@ const mongoose_1 = require("@nestjs/mongoose");
 const course_schema_1 = require("../schemas/course.schema");
 const malla_schema_1 = require("../schemas/malla.schema");
 const avance_schema_1 = require("../schemas/avance.schema");
+const proyeccion_schema_1 = require("../schemas/proyeccion.schema");
 let MallasModule = class MallasModule {
 };
 MallasModule = __decorate([
@@ -25,6 +26,7 @@ MallasModule = __decorate([
                 { name: course_schema_1.Course.name, schema: course_schema_1.CourseSchema },
                 { name: malla_schema_1.Malla.name, schema: malla_schema_1.MallaSchema },
                 { name: avance_schema_1.Avance.name, schema: avance_schema_1.AvanceSchema },
+                { name: proyeccion_schema_1.Proyeccion.name, schema: proyeccion_schema_1.ProyeccionSchema },
             ]),
         ],
         controllers: [mallas_controller_1.MallasController],

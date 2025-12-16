@@ -19,7 +19,7 @@ AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
             axios_1.HttpModule.register({}),
-            mongoose_1.MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://localhost:27017/university_curriculum', {}),
+            mongoose_1.MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://root:example@localhost:27017/university_curriculum?authSource=admin', {}),
             auth_module_1.AuthModule,
             mallas_module_1.MallasModule,
             users_module_1.UsersModule,

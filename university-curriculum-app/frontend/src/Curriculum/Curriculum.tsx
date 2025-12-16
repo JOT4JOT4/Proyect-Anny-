@@ -48,14 +48,24 @@ const Curriculum: React.FC = () => {
     optimizedCourseMap, 
     totalOptimizedSemesters,
     isLoading, 
-    error: optimizationError      
+    error: optimizationError,
+    generateOptimization,
+    savePlan,
+    loadPlan,
+    clearPlan,
+    deletePlan,
+    savedPlans,
+    currentPlanName,
+    currentPlanId
   } = useOptimization(
       merged, 
       currentApprovedCodes, 
-      // parsePrereqs,  
       creditLimit, 
       manuallyInscribedCodes, 
-      selectedCareerKey
+      selectedCareerKey,
+      userData?.rut || '',           
+      selectedCareer?.codigo || '',    
+      setToast                         
   );
   
   // Estado UI 
@@ -78,13 +88,6 @@ const Curriculum: React.FC = () => {
     return new Map(decorated.map((it: any) => [it.cursoCodigo, it]));
   }, [decorated]);
   
-  
-  const handleToggleOptimize = () => {
-    setIsOptimizedView(prev => !prev);
-    resetSimulation(); 
-  };
-
-
   if (!userData) {
     return (
       <div style={{ padding: 40, textAlign: 'center' }}>
@@ -127,8 +130,18 @@ const Curriculum: React.FC = () => {
               onCreditLimitChange={setCreditLimit}
               simulationMode={simulationMode}
               onSimulationModeChange={setSimulationMode}
-              onToggleOptimize={handleToggleOptimize}
-              // Export props
+              
+              /* Props de Optimización */
+              onGenerate={generateOptimization}
+              onSave={savePlan}
+              onLoad={loadPlan}
+              onDelete={deletePlan}
+              onClear={clearPlan}
+              savedPlans={savedPlans}
+              currentPlanName={currentPlanName}
+              currentPlanId={currentPlanId}
+
+              /* Props de Exportación */
               simulatedStatus={simulatedStatus}
               decoratedMap={decoratedMap}
               selectedCareer={selectedCareer}
@@ -157,7 +170,7 @@ const Curriculum: React.FC = () => {
               isOptimizedView={isOptimizedView}
               hoveredKey={hoveredKey}
               simulationMode={simulationMode}
-              parsePrereqs={parsePrereqs}
+              parsePrereqs={parsePrereqs} 
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
               onSimulateStatus={handleSimulateStatus}

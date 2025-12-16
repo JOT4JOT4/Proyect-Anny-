@@ -19,24 +19,66 @@ let MallasController = class MallasController {
     constructor(mallasService) {
         this.mallasService = mallasService;
     }
-    async getMalla(codigo, catalogo) {
-        return this.mallasService.getMalla(codigo, catalogo);
+    getOptimizedPlan(body) {
+        return this.mallasService.generatePlan(body);
+    }
+    async saveProyeccion(body) {
+        const { rut, codCarrera, nombre, plan, id } = body;
+        return this.mallasService.saveProyeccion(rut, codCarrera, nombre, plan, id);
+    }
+    async getMisProyecciones(rut, codCarrera, sort) {
+        return this.mallasService.getProyeccionesByUser(rut, codCarrera, sort);
+    }
+    async getProyeccion(id) {
+        return this.mallasService.getProyeccionById(id);
+    }
+    async deleteProyeccion(id) {
+        return this.mallasService.deleteProyeccion(id);
     }
     async getAvance(rut, codcarrera) {
         return this.mallasService.getAvance(rut, codcarrera);
     }
-    getOptimizedPlan(body) {
-        return this.mallasService.generatePlan(body);
+    async getMalla(codigo, catalogo) {
+        return this.mallasService.getMalla(codigo, catalogo);
     }
 };
 __decorate([
-    (0, common_1.Get)(':codigo/:catalogo'),
-    __param(0, (0, common_1.Param)('codigo')),
-    __param(1, (0, common_1.Param)('catalogo')),
+    (0, common_1.Post)('optimize-plan'),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], MallasController.prototype, "getOptimizedPlan", null);
+__decorate([
+    (0, common_1.Post)('save-proyeccion'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], MallasController.prototype, "getMalla", null);
+], MallasController.prototype, "saveProyeccion", null);
+__decorate([
+    (0, common_1.Get)('mis-proyecciones'),
+    __param(0, (0, common_1.Query)('rut')),
+    __param(1, (0, common_1.Query)('codCarrera')),
+    __param(2, (0, common_1.Query)('sort')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", Promise)
+], MallasController.prototype, "getMisProyecciones", null);
+__decorate([
+    (0, common_1.Get)('proyeccion/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], MallasController.prototype, "getProyeccion", null);
+__decorate([
+    (0, common_1.Delete)('proyeccion/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], MallasController.prototype, "deleteProyeccion", null);
 __decorate([
     (0, common_1.Get)('avance'),
     __param(0, (0, common_1.Query)('rut')),
@@ -46,12 +88,13 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], MallasController.prototype, "getAvance", null);
 __decorate([
-    (0, common_1.Post)('optimize-plan'),
-    __param(0, (0, common_1.Body)()),
+    (0, common_1.Get)(':codigo/:catalogo'),
+    __param(0, (0, common_1.Param)('codigo')),
+    __param(1, (0, common_1.Param)('catalogo')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], MallasController.prototype, "getOptimizedPlan", null);
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], MallasController.prototype, "getMalla", null);
 MallasController = __decorate([
     (0, common_1.Controller)('mallas'),
     __metadata("design:paramtypes", [mallas_service_1.MallasService])

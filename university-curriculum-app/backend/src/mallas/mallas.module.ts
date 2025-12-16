@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Course, CourseSchema } from '../schemas/course.schema';
 import { Malla, MallaSchema } from '../schemas/malla.schema';
 import { Avance, AvanceSchema } from '../schemas/avance.schema';
+import { Proyeccion, ProyeccionSchema } from '../schemas/proyeccion.schema';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { Avance, AvanceSchema } from '../schemas/avance.schema';
       { name: Course.name, schema: CourseSchema },
       { name: Malla.name, schema: MallaSchema },
       { name: Avance.name, schema: AvanceSchema },
+      { name: Proyeccion.name, schema: ProyeccionSchema },
     ]),
   ],
   controllers: [MallasController],

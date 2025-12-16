@@ -8,7 +8,7 @@ import { UsersModule } from './users/users.module';
 @Module({
   imports: [
     HttpModule.register({}),
-    MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://localhost:27017/university_curriculum', {
+    MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://root:example@localhost:27017/university_curriculum?authSource=admin', {
       // opciones recomendadas por mongoose (Nest añade por defecto)
     }),
     AuthModule,

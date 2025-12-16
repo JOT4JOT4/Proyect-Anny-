@@ -26,19 +26,33 @@ import { HttpService } from '@nestjs/axios';
 import { Model } from 'mongoose';
 import { Course, CourseDocument } from '../schemas/course.schema';
 import { Malla, MallaDocument } from '../schemas/malla.schema';
-import { AvanceDocument } from 'src/schemas/avance.schema';
+import { AvanceDocument } from '../schemas/avance.schema';
+import { Proyeccion, ProyeccionDocument } from '../schemas/proyeccion.schema';
 import { OptimizedPlan } from './plan-calculator.util';
 export declare class MallasService {
     private readonly httpService;
     private courseModel;
     private mallaModel;
+    private proyeccionModel;
     private avanceModel;
-    constructor(httpService: HttpService, courseModel: Model<CourseDocument>, mallaModel: Model<MallaDocument>, avanceModel: Model<AvanceDocument>);
+    constructor(httpService: HttpService, courseModel: Model<CourseDocument>, mallaModel: Model<MallaDocument>, proyeccionModel: Model<ProyeccionDocument>, avanceModel: Model<AvanceDocument>);
     getMalla(codigo: string, catalogo: string): Promise<any>;
     getAvance(rut: string, codcarrera: string): Promise<any>;
     persistMalla(carreraKey: string, catalogo: string, cursos: Partial<Course & {
         codigo?: string;
     }>[]): Promise<import("mongoose").Document<unknown, {}, MallaDocument> & Malla & import("mongoose").Document<any, any, any> & {
+        _id: import("mongoose").Types.ObjectId;
+    }>;
+    saveProyeccion(rut: string, codCarrera: string, nombre: string, planData: any, planId?: string): Promise<import("mongoose").Document<unknown, {}, ProyeccionDocument> & Proyeccion & import("mongoose").Document<any, any, any> & {
+        _id: import("mongoose").Types.ObjectId;
+    }>;
+    getProyeccionesByUser(rut: string, codCarrera: string, sort?: 'date' | 'alpha'): Promise<(import("mongoose").Document<unknown, {}, ProyeccionDocument> & Proyeccion & import("mongoose").Document<any, any, any> & {
+        _id: import("mongoose").Types.ObjectId;
+    })[]>;
+    getProyeccionById(id: string): Promise<import("mongoose").Document<unknown, {}, ProyeccionDocument> & Proyeccion & import("mongoose").Document<any, any, any> & {
+        _id: import("mongoose").Types.ObjectId;
+    }>;
+    deleteProyeccion(id: string): Promise<import("mongoose").Document<unknown, {}, ProyeccionDocument> & Proyeccion & import("mongoose").Document<any, any, any> & {
         _id: import("mongoose").Types.ObjectId;
     }>;
     generatePlan(data: any): OptimizedPlan;
