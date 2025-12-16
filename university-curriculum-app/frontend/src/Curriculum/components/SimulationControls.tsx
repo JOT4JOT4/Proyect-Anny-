@@ -165,7 +165,7 @@ export const SimulationControls: React.FC<Props> = (props) => {
                    <button 
                       onClick={handleLoadClick} 
                       disabled={!selectedLoadId} 
-                      style={{ cursor: 'pointer', padding: '6px 10px', borderRadius: 6, border: '1px solid #9ca3af', background: '#f3f4f6' }}
+                      style={{ cursor: 'pointer', padding: '6px 10px', borderRadius: 6, border: '1px solid #9ca3af', background: '#34aa44ff', color: '#ffffff' }}
                       title="Cargar plan seleccionado"
                    >
                       Cargar
@@ -235,13 +235,13 @@ export const SimulationControls: React.FC<Props> = (props) => {
         <span style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>Exportar Simulación:</span>
         <button
           onClick={() => exportSimulated('json')}
-          style={{ padding: '6px 10px', background: '#fff', border: '1px solid #d1d5db', borderRadius: 6, cursor: 'pointer', fontSize: 12 }}
+          style={{ padding: '6px 10px', background: '#fff', border: '1px solid #d1d5db', borderRadius: 6, cursor: 'pointer', fontSize: 12, color: '#374151' }}
         >
           Exportar INSCRITOS (JSON)
         </button>
         <button
           onClick={() => exportSimulated('csv')}
-          style={{ padding: '6px 10px', background: '#fff', border: '1px solid #d1d5db', borderRadius: 6, cursor: 'pointer', fontSize: 12 }}
+          style={{ padding: '6px 10px', background: '#fff', border: '1px solid #d1d5db', borderRadius: 6, cursor: 'pointer', fontSize: 12, color: '#374151' }}
         >
           Exportar INSCRITOS (CSV)
         </button>

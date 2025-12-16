@@ -30,7 +30,7 @@ export const CurriculumHeader: React.FC<Props> = ({ userData, selectedCareerInde
                 id="career-select"
                 value={selectedCareerIndex}
                 onChange={(e) => onCareerChange(Number(e.target.value))}
-                style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff' }}
+                style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff', color: '#374151', fontSize: 14, cursor: 'pointer' }}
               >
                 {userData.carreras.map((c, idx) => (
                   <option key={c.codigo + c.catalogo} value={idx}>
