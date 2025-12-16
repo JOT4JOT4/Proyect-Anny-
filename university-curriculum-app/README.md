@@ -89,6 +89,20 @@ university-curriculum-app
    npm run dev
    ```
 
+### Database with Mongo/Docker
+
+1. Mongo up
+   ```
+   docker-compose up -d
+   ```
+
+2. Install dependences & Backend up
+   ```
+   npm install
+   npm run start:dev
+   ```
+
+
 ### API Endpoints
 
 The backend provides several API endpoints for managing the curriculum. Refer to the backend README.md for detailed information on available routes and their usage.
