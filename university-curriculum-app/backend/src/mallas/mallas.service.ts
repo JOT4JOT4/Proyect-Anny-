@@ -5,7 +5,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Course, CourseDocument } from '../schemas/course.schema';
 import { Malla, MallaDocument } from '../schemas/malla.schema';
-import { Avance, AvanceDocument } from '../schemas/avance.schema';
+import { Avance, AvanceDocument } from 'src/schemas/avance.schema';
+import { OptimizedPlan } from './plan-calculator.util';
 
 @Injectable()
 export class MallasService {
@@ -73,4 +74,35 @@ export class MallasService {
       { upsert: true, new: true },
     ).exec();
   }
+
+    // Método plan optimizado
+  generatePlan(data: any): OptimizedPlan { 
+    const { mergedCourses, approvedCodes, creditLimit, manuallyInscribedCodes } = data;
+
+    const approvedSet = new Set<string>(approvedCodes);
+    const manualSet = new Set<string>(manuallyInscribedCodes);
+
+
+    const parsePrereqsLogic = (curso: any) => {
+        if (Array.isArray(curso.requisitos)) {
+            return curso.requisitos.map(req => ({ 
+                code: typeof req === 'string' ? req : req.codigo 
+            }));
+        }
+        return [];
+    };
+
+    return calculateOptimizedPlan(
+      mergedCourses,
+      approvedSet,
+      parsePrereqsLogic, 
+      creditLimit,
+      manualSet
+    );
+
+  }
 }
+function calculateOptimizedPlan(mergedCourses: any, approvedSet: Set<string>, parsePrereqsLogic: (curso: any) => any, creditLimit: any, manualSet: Set<string>): OptimizedPlan {
+  throw new Error('Function not implemented.');
+}
+

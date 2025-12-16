@@ -72,6 +72,20 @@ let MallasService = class MallasService {
         const cursoCodigos = cursos.map((c) => c.codigo);
         return this.mallaModel.findOneAndUpdate({ carreraKey, catalogo }, { $set: { carreraKey, catalogo, cursos: cursoCodigos } }, { upsert: true, new: true }).exec();
     }
+    generatePlan(data) {
+        const { mergedCourses, approvedCodes, creditLimit, manuallyInscribedCodes } = data;
+        const approvedSet = new Set(approvedCodes);
+        const manualSet = new Set(manuallyInscribedCodes);
+        const parsePrereqsLogic = (curso) => {
+            if (Array.isArray(curso.requisitos)) {
+                return curso.requisitos.map(req => ({
+                    code: typeof req === 'string' ? req : req.codigo
+                }));
+            }
+            return [];
+        };
+        return calculateOptimizedPlan(mergedCourses, approvedSet, parsePrereqsLogic, creditLimit, manualSet);
+    }
 };
 MallasService = __decorate([
     (0, common_1.Injectable)(),
@@ -84,4 +98,7 @@ MallasService = __decorate([
         mongoose_2.Model])
 ], MallasService);
 exports.MallasService = MallasService;
+function calculateOptimizedPlan(mergedCourses, approvedSet, parsePrereqsLogic, creditLimit, manualSet) {
+    throw new Error('Function not implemented.');
+}
 //# sourceMappingURL=mallas.service.js.map
