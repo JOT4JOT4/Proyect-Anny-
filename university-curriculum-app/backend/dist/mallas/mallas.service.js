@@ -117,9 +117,12 @@ let MallasService = class MallasService {
         return this.proyeccionModel.findByIdAndDelete(id).exec();
     }
     generatePlan(data) {
-        const { mergedCourses, approvedCodes, creditLimit, manuallyInscribedCodes } = data;
+        const { mergedCourses, approvedCodes, creditLimits, manuallyInscribedCodes } = data;
         const approvedSet = new Set(approvedCodes);
         const manualSet = new Set(manuallyInscribedCodes);
+        const limitsArray = Array.isArray(creditLimits) && creditLimits.length > 0
+            ? creditLimits
+            : [30];
         const parsePrereqsLogic = (curso) => {
             if (Array.isArray(curso.requisitos)) {
                 return curso.requisitos.map(req => ({
@@ -128,7 +131,7 @@ let MallasService = class MallasService {
             }
             return [];
         };
-        return (0, plan_calculator_util_1.calculateOptimizedPlan)(mergedCourses, approvedSet, parsePrereqsLogic, creditLimit, manualSet);
+        return (0, plan_calculator_util_1.calculateOptimizedPlan)(mergedCourses, approvedSet, parsePrereqsLogic, limitsArray, manualSet);
     }
 };
 MallasService = __decorate([

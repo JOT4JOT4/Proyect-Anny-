@@ -36,8 +36,7 @@ const Curriculum: React.FC = () => {
   
   // Estado de simulación
   const {
-    simulatedStatus, simulationMode, setSimulationMode,
-    creditLimit, setCreditLimit, currentApprovedCodes,
+    simulatedStatus, simulationMode, setSimulationMode, currentApprovedCodes,
     manuallyInscribedCodes, handleSimulateStatus, resetSimulation
   } = useSimulation(realApprovedCodes, merged, parsePrereqs, setToast, selectedCareerKey);
 
@@ -56,11 +55,13 @@ const Curriculum: React.FC = () => {
     deletePlan,
     savedPlans,
     currentPlanName,
-    currentPlanId
+    currentPlanId,
+    semesterLimits,
+    handleLimitChange,
+    setAllLimits
   } = useOptimization(
       merged, 
       currentApprovedCodes, 
-      creditLimit, 
       manuallyInscribedCodes, 
       selectedCareerKey,
       userData?.rut || '',           
@@ -126,8 +127,6 @@ const Curriculum: React.FC = () => {
             <SimulationControls
               isOptimizedView={isOptimizedView}
               totalOptimizedSemesters={totalOptimizedSemesters}
-              creditLimit={creditLimit}
-              onCreditLimitChange={setCreditLimit}
               simulationMode={simulationMode}
               onSimulationModeChange={setSimulationMode}
               
@@ -140,6 +139,10 @@ const Curriculum: React.FC = () => {
               savedPlans={savedPlans}
               currentPlanName={currentPlanName}
               currentPlanId={currentPlanId}
+
+              onSetAllLimits={setAllLimits}
+              semesterLimits={semesterLimits}
+              onLimitChange={handleLimitChange}
 
               /* Props de Exportación */
               simulatedStatus={simulatedStatus}

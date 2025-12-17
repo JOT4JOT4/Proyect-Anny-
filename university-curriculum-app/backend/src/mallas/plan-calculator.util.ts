@@ -10,11 +10,10 @@ export function calculateOptimizedPlan(
     mergedCourses: any[],
     approvedCodes: Set<string>,
     parsePrereqs: (curso: any) => Array<{ code: string; name?: string }>,
-    creditLimit: number, 
+    creditLimits: number[],
     manuallyInscribedCodes: Set<string>
 ): OptimizedPlan {
     
-    const MAX_CREDITS_PER_SEMESTER = Math.min(35, Math.max(12, creditLimit));
     const plan: OptimizedPlan = {};
     
     const pendingCourses = mergedCourses
@@ -40,6 +39,12 @@ export function calculateOptimizedPlan(
         let currentCredits = 0;
         let assignedInThisSemester = false;
 
+        const rawLimit = creditLimits[currentSemester - 1] 
+                      || creditLimits[creditLimits.length - 1] 
+                      || 30;
+
+        const currentMaxCredits = Math.min(35, Math.max(12, rawLimit));
+
         if(currentSemester === 1 && manuallyInscribedCodes.size > 0){
             const fullInscribedCourses: any[] = [];
             manuallyInscribedCodes.forEach(code => {
@@ -56,7 +61,7 @@ export function calculateOptimizedPlan(
                 const credits = parseInt(course.creditos || 0, 10);
                 const courseCode = String(course.codigo || course.code || course.id || '').trim();
 
-                if (currentCredits + credits <= MAX_CREDITS_PER_SEMESTER) {
+                if (currentCredits + credits <= currentMaxCredits) {
                     plan[semesterKey].push({
                         codigo: courseCode,
                         nombre: course.asignatura || course.nombre || course.courseName,
@@ -111,7 +116,7 @@ export function calculateOptimizedPlan(
                 const credits = parseInt(course.creditos || 0, 10); 
                 const courseCode = String(course.codigo || course.code || course.id || '').trim();
                 
-                if (currentCredits + credits <= MAX_CREDITS_PER_SEMESTER) {
+                if (currentCredits + credits <= currentMaxCredits) {
                     
                     plan[semesterKey].push({
                         codigo: courseCode,
@@ -141,6 +146,7 @@ export function calculateOptimizedPlan(
         }
 
         if (!assignedInThisSemester && pendingCourses.length > 0) {
+            if (currentSemester > 20) break;
             console.warn(`Planificación detenida: No se pudo asignar ningún curso al Semestre ${currentSemester}.`);
             if (plan[semesterKey].length === 0) {
                 delete plan[semesterKey]; 

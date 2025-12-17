@@ -144,10 +144,14 @@ export class MallasService {
 
     // Método plan optimizado
   generatePlan(data: any): OptimizedPlan { 
-    const { mergedCourses, approvedCodes, creditLimit, manuallyInscribedCodes } = data;
+    const { mergedCourses, approvedCodes, creditLimits, manuallyInscribedCodes } = data;
 
     const approvedSet = new Set<string>(approvedCodes);
     const manualSet = new Set<string>(manuallyInscribedCodes);
+
+    const limitsArray = Array.isArray(creditLimits) && creditLimits.length > 0 
+        ? creditLimits 
+        : [30];
 
 
     const parsePrereqsLogic = (curso: any) => {
@@ -163,7 +167,7 @@ export class MallasService {
       mergedCourses,
       approvedSet,
       parsePrereqsLogic, 
-      creditLimit,
+      limitsArray,
       manualSet
     );
 

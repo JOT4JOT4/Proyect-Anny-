@@ -10,7 +10,6 @@ interface SavedPlanSummary {
 export const useOptimization = (
   merged: MergedCourse[],
   currentApprovedCodes: Set<string>,
-  creditLimit: number,
   manuallyInscribedCodes: Set<string>,
   selectedCareerKey: string | null,
   userRut: string,
@@ -25,12 +24,28 @@ export const useOptimization = (
   const [currentPlanName, setCurrentPlanName] = useState<string>('');
   const [savedPlans, setSavedPlans] = useState<SavedPlanSummary[]>([]);
 
-  useEffect(() => {
+const [semesterLimits, setSemesterLimits] = useState<number[]>(new Array(24).fill(30));
+
+
+const handleLimitChange = (index: number, value: number) => {
+      const clamped = Math.max(12, Math.min(35, value)); 
+      const newLimits = [...semesterLimits];
+      newLimits[index] = clamped;
+      setSemesterLimits(newLimits);
+  };
+  
+  // Helpers para configuración rápida 
+  const setAllLimits = (val: number) => {
+      setSemesterLimits(new Array(24).fill(val));
+  };
+
+useEffect(() => {
     setIsOptimizedView(false);
     setOptimizedPlan({});
     setCurrentPlanId(null);
     setCurrentPlanName('');
     setSavedPlans([]); 
+    setSemesterLimits(new Array(24).fill(30));
   }, [selectedCareerKey]);
 
   useEffect(() => {
@@ -51,7 +66,7 @@ export const useOptimization = (
   };
 
   // OPTIMIZAR
-  const generateOptimization = async () => {
+const generateOptimization = async () => {
     if (merged.length === 0) return;
     setIsLoading(true);
     setError(null);
@@ -61,7 +76,7 @@ export const useOptimization = (
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           mergedCourses: merged,
-          creditLimit: creditLimit,
+          creditLimits: semesterLimits, 
           approvedCodes: Array.from(currentApprovedCodes),
           manuallyInscribedCodes: Array.from(manuallyInscribedCodes)
         }),
@@ -84,7 +99,6 @@ export const useOptimization = (
 
   // GUARDAR PLAN
   const savePlan = async () => {
-    // Protección: Si optimizedPlan es nulo o vacío, no guardamos
     if (!optimizedPlan || Object.keys(optimizedPlan).length === 0) {
       setToast({ message: 'No hay un plan optimizado válido para guardar.', type: 'error' });
       return;
@@ -225,6 +239,9 @@ export const useOptimization = (
     deletePlan,
     savedPlans,
     currentPlanName,
-    currentPlanId
+    currentPlanId,
+    semesterLimits,
+    handleLimitChange,
+    setAllLimits
   };
 };
