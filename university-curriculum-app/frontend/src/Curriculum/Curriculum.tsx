@@ -58,7 +58,11 @@ const Curriculum: React.FC = () => {
     currentPlanId,
     semesterLimits,
     handleLimitChange,
-    setAllLimits
+    setAllLimits,
+    allowSpecialPeriods,
+    setAllowSpecialPeriods,
+    includePracticeInNormal,
+    setIncludePracticeInNormal
   } = useOptimization(
       merged, 
       currentApprovedCodes, 
@@ -149,6 +153,11 @@ const Curriculum: React.FC = () => {
               decoratedMap={decoratedMap}
               selectedCareer={selectedCareer}
               setToast={setToast}
+
+              allowSpecialPeriods={allowSpecialPeriods}
+              setAllowSpecialPeriods={setAllowSpecialPeriods}
+              includePracticeInNormal={includePracticeInNormal}
+              setIncludePracticeInNormal={setIncludePracticeInNormal}
             />
           
             <FilterBar

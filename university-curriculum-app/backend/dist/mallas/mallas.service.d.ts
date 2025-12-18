@@ -36,7 +36,7 @@ export declare class MallasService {
     private proyeccionModel;
     private avanceModel;
     constructor(httpService: HttpService, courseModel: Model<CourseDocument>, mallaModel: Model<MallaDocument>, proyeccionModel: Model<ProyeccionDocument>, avanceModel: Model<AvanceDocument>);
-    getMalla(codigo: string, catalogo: string): Promise<any>;
+    getMalla(codigo: string, catalogo: string): Promise<any[]>;
     getAvance(rut: string, codcarrera: string): Promise<any>;
     persistMalla(carreraKey: string, catalogo: string, cursos: Partial<Course & {
         codigo?: string;

@@ -24,7 +24,9 @@ export const useOptimization = (
   const [currentPlanName, setCurrentPlanName] = useState<string>('');
   const [savedPlans, setSavedPlans] = useState<SavedPlanSummary[]>([]);
 
-const [semesterLimits, setSemesterLimits] = useState<number[]>(new Array(24).fill(30));
+  const [semesterLimits, setSemesterLimits] = useState<number[]>(new Array(24).fill(32));
+  const [allowSpecialPeriods, setAllowSpecialPeriods] = useState<boolean>(false);
+  const [includePracticeInNormal, setIncludePracticeInNormal] = useState<boolean>(false);
 
 
 const handleLimitChange = (index: number, value: number) => {
@@ -45,7 +47,7 @@ useEffect(() => {
     setCurrentPlanId(null);
     setCurrentPlanName('');
     setSavedPlans([]); 
-    setSemesterLimits(new Array(24).fill(30));
+    setSemesterLimits(new Array(24).fill(32));
   }, [selectedCareerKey]);
 
   useEffect(() => {
@@ -78,7 +80,9 @@ const generateOptimization = async () => {
           mergedCourses: merged,
           creditLimits: semesterLimits, 
           approvedCodes: Array.from(currentApprovedCodes),
-          manuallyInscribedCodes: Array.from(manuallyInscribedCodes)
+          manuallyInscribedCodes: Array.from(manuallyInscribedCodes),
+          allowSpecialPeriods: allowSpecialPeriods,       
+          includePracticeInNormal: includePracticeInNormal, 
         }),
       });
 
@@ -242,6 +246,10 @@ const generateOptimization = async () => {
     currentPlanId,
     semesterLimits,
     handleLimitChange,
-    setAllLimits
+    setAllLimits,
+    allowSpecialPeriods,
+    setAllowSpecialPeriods,
+    includePracticeInNormal,
+    setIncludePracticeInNormal
   };
 };

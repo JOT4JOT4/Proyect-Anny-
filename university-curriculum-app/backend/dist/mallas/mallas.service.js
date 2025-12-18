@@ -38,20 +38,40 @@ let MallasService = class MallasService {
             if (!m)
                 return [];
             const cursos = await this.courseModel.find({ codigo: { $in: m.cursos } }).lean();
-            return cursos.map((c) => ({ codigo: c.codigo, asignatura: c.nombre, creditos: c.creditos || 0, nivel: c.nivel || 0, prereq: (c.prerequisitos || []).join(',') }));
+            return cursos.map((c) => ({ codigo: c.codigo, asignatura: c.nombre, creditos: c.creditos || 0, nivel: c.nivel || 0, prereq: (c.prerequisitos || []).join(','), permiteRecuperacion: c.permiteRecuperacion || false,
+                esPracticaVerano: c.esPracticaVerano || false }));
         }
         const key = `${codigo}-${catalogo}`;
         const url = `https://losvilos.ucn.cl/hawaii/api/mallas?${key}`;
         try {
             const response = await (0, rxjs_1.firstValueFrom)(this.httpService.get(url, {
-                headers: {
-                    'X-HAWAII-AUTH': 'jf400fejof13f',
-                },
+                headers: { 'X-HAWAII-AUTH': 'jf400fejof13f' },
             }));
-            return response.data;
+            if (!response.data || !Array.isArray(response.data)) {
+                return [];
+            }
+            const cursosExternos = response.data;
+            const codigos = cursosExternos.map((c) => c.codigo);
+            const cursosLocales = await this.courseModel.find({
+                codigo: { $in: codigos }
+            }).select('codigo permiteRecuperacion esPracticaVerano').lean();
+            const mapaLocal = new Map();
+            cursosLocales.forEach((doc) => {
+                mapaLocal.set(doc.codigo, doc);
+            });
+            const mallaFinal = cursosExternos.map((cursoExt) => {
+                const infoLocal = mapaLocal.get(cursoExt.codigo);
+                return {
+                    ...cursoExt,
+                    permiteRecuperacion: infoLocal ? !!infoLocal.permiteRecuperacion : false,
+                    esPracticaVerano: infoLocal ? !!infoLocal.esPracticaVerano : false
+                };
+            });
+            return mallaFinal;
         }
         catch (err) {
-            throw new Error('Error fetching malla');
+            console.error('Error fetching malla externa:', err.message);
+            throw new Error(`Failed to fetch malla for ${key}`);
         }
     }
     async getAvance(rut, codcarrera) {
@@ -117,9 +137,39 @@ let MallasService = class MallasService {
         return this.proyeccionModel.findByIdAndDelete(id).exec();
     }
     generatePlan(data) {
-        const { mergedCourses, approvedCodes, creditLimits, manuallyInscribedCodes } = data;
+        const { mergedCourses, approvedCodes, creditLimits, manuallyInscribedCodes, allowSpecialPeriods, includePracticeInNormal, simulatedStatus } = data;
+        console.log("--- DEBUG SERVICIO: Revisando datos entrantes ---");
+        console.log(`Modo Periodo Especial Activo: ${allowSpecialPeriods}`);
+        const algunRecuperable = mergedCourses.find((m) => m.curso.permiteRecuperacion === true);
+        if (algunRecuperable) {
+            console.log(`✅ DATO CONFIRMADO: El curso ${algunRecuperable.curso.codigo} (${algunRecuperable.curso.nombre}) tiene permiteRecuperacion: true`);
+        }
+        else {
+            console.log("⚠️ ALERTA: No llegó ningún curso con permiteRecuperacion en true. Revisa getMalla o la BD.");
+        }
+        console.log("---------------------------------------------");
         const approvedSet = new Set(approvedCodes);
         const manualSet = new Set(manuallyInscribedCodes);
+        const failedSet = new Set();
+        if (Array.isArray(mergedCourses)) {
+            mergedCourses.forEach(m => {
+                const status = m.avance?.status || '';
+                if (status === 'REPROBADO')
+                    failedSet.add(m.curso.codigo);
+            });
+        }
+        if (simulatedStatus) {
+            Object.entries(simulatedStatus).forEach(([code, status]) => {
+                if (status === 'REPROBADO') {
+                    failedSet.add(code);
+                    approvedSet.delete(code);
+                }
+                else if (status === 'APROBADO') {
+                    failedSet.delete(code);
+                    approvedSet.add(code);
+                }
+            });
+        }
         const limitsArray = Array.isArray(creditLimits) && creditLimits.length > 0
             ? creditLimits
             : [30];
@@ -131,7 +181,7 @@ let MallasService = class MallasService {
             }
             return [];
         };
-        return (0, plan_calculator_util_1.calculateOptimizedPlan)(mergedCourses, approvedSet, parsePrereqsLogic, limitsArray, manualSet);
+        return (0, plan_calculator_util_1.calculateOptimizedPlan)(mergedCourses, approvedSet, parsePrereqsLogic, limitsArray, manualSet, failedSet, allowSpecialPeriods || false, includePracticeInNormal || false);
     }
 };
 MallasService = __decorate([

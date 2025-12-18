@@ -6,10 +6,9 @@ interface Props {
   isOptimizedView: boolean;
   totalOptimizedSemesters: number;
   
-  // Props actualizadas (sin targetYears)
   semesterLimits: number[];
   onLimitChange: (idx: number, val: number) => void;
-  onSetAllLimits?: (val: number) => void; // Opcional: para botones rápidos
+  onSetAllLimits?: (val: number) => void; 
 
   simulationMode: SimulationMode;
   onSimulationModeChange: (mode: SimulationMode) => void;
@@ -28,12 +27,17 @@ interface Props {
   decoratedMap: Map<string, DecoratedCourse>;
   selectedCareer: Carrera | null;
   setToast: (toast: ToastState) => void;
+
+  allowSpecialPeriods: boolean;
+  setAllowSpecialPeriods: (val: boolean) => void;
+  includePracticeInNormal: boolean;
+  setIncludePracticeInNormal: (val: boolean) => void;
 }
 
 export const SimulationControls: React.FC<Props> = (props) => {
 
   const [selectedLoadId, setSelectedLoadId] = useState<string>('');
-  const [showConfig, setShowConfig] = useState<boolean>(true); // Estado para colapsar/expandir la config
+  const [showConfig, setShowConfig] = useState<boolean>(true); 
 
   const handleLoadClick = () => {
     if(selectedLoadId) {
@@ -124,9 +128,29 @@ return (
         </div>
       </div>
       
-      {/* CONFIGURACIÓN (Solo si no está optimizado) */}
+      {/* CONFIGURACIÓN  */}
       {!props.isOptimizedView && showConfig && (
           <div style={{ marginBottom: 20, padding: 10, background: '#f9fafb', borderRadius: 8, border: '1px solid #f3f4f6' }}>
+            {/* CHECKBOXES DE REGLAS ESPECIALES */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 15, padding: '10px', background: '#fff', borderRadius: 6, border: '1px solid #e5e7eb' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer', color: '#374151', fontWeight: 500 }}>
+                      <input 
+                        type="checkbox" 
+                        checked={props.allowSpecialPeriods}
+                        onChange={(e) => props.setAllowSpecialPeriods(e.target.checked)}
+                      />
+                      🌞 Habilitar Periodo Especial (Recuperar 1 ramo reprobado en Verano/Invierno)
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer', color: '#374151', fontWeight: 500 }}>
+                      <input 
+                        type="checkbox" 
+                        checked={props.includePracticeInNormal}
+                        onChange={(e) => props.setIncludePracticeInNormal(e.target.checked)}
+                      />
+                      📅 Incluir Prácticas/Tesinas en carga académica normal (No en Verano)
+                  </label>
+                </div>
               
               {/* SUGERENCIA VISUAL */}
               <div style={{ marginBottom: 15, padding: '8px 12px', background: '#eff6ff', borderRadius: 6, borderLeft: '4px solid #3b82f6', color: '#1e40af', fontSize: 13 }}>
@@ -138,6 +162,12 @@ return (
                           </button>
                           <button onClick={() => props.onSetAllLimits && props.onSetAllLimits(12)} style={{ fontSize: 11, padding: '2px 8px', cursor: 'pointer', borderRadius: 4, border: '1px solid #93c5fd', background: '#fff', color: '#2563eb' }}>
                               Usar 12 en todos 
+                          </button>
+                          <button 
+                            onClick={() => props.onSetAllLimits && props.onSetAllLimits(32)}
+                            style={{ fontSize: 11, padding: '2px 8px', cursor: 'pointer', borderRadius: 4, border: '1px solid #93c5fd', background: '#fff', color: '#2563eb' }}
+                          >
+                            Usar 32 en todos (default)
                           </button>
                       </div>
                   )}

@@ -41,5 +41,5 @@ export declare class MallasController {
         _id: import("mongoose").Types.ObjectId;
     }>;
     getAvance(rut: string, codcarrera: string): Promise<any>;
-    getMalla(codigo: string, catalogo: string): Promise<any>;
+    getMalla(codigo: string, catalogo: string): Promise<any[]>;
 }

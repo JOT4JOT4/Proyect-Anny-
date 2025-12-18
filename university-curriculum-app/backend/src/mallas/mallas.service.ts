@@ -29,7 +29,8 @@ export class MallasService {
       // m.cursos may be course codes
       const cursos = await this.courseModel.find({ codigo: { $in: m.cursos } }).lean();
       // format like external API
-      return cursos.map((c) => ({ codigo: c.codigo, asignatura: c.nombre, creditos: c.creditos || 0, nivel: c.nivel || 0, prereq: (c.prerequisitos || []).join(',') }));
+      return cursos.map((c) => ({ codigo: c.codigo, asignatura: c.nombre, creditos: c.creditos || 0, nivel: c.nivel || 0, prereq: (c.prerequisitos || []).join(','),permiteRecuperacion: c.permiteRecuperacion || false,
+      esPracticaVerano: c.esPracticaVerano || false }));
     }
 
     const key = `${codigo}-${catalogo}`;
@@ -37,14 +38,41 @@ export class MallasService {
     try {
       const response = await firstValueFrom(
         this.httpService.get(url, {
-          headers: {
-            'X-HAWAII-AUTH': 'jf400fejof13f',
-          },
+          headers: { 'X-HAWAII-AUTH': 'jf400fejof13f' },
         }),
       );
-      return response.data;
-    } catch (err) {
-      throw new Error('Error fetching malla');
+
+      if (!response.data || !Array.isArray(response.data)) {
+        return [];
+      }
+
+      const cursosExternos = response.data;
+      const codigos = cursosExternos.map((c: any) => c.codigo);
+
+      const cursosLocales = await this.courseModel.find({ 
+          codigo: { $in: codigos } 
+      }).select('codigo permiteRecuperacion esPracticaVerano').lean();
+
+      const mapaLocal = new Map();
+      cursosLocales.forEach((doc: any) => {
+          mapaLocal.set(doc.codigo, doc);
+      });
+
+      const mallaFinal = cursosExternos.map((cursoExt: any) => {
+          const infoLocal = mapaLocal.get(cursoExt.codigo);
+          
+          return {
+              ...cursoExt, 
+              permiteRecuperacion: infoLocal ? !!infoLocal.permiteRecuperacion : false,
+              esPracticaVerano: infoLocal ? !!infoLocal.esPracticaVerano : false
+          };
+      });
+
+      return mallaFinal;
+
+    } catch (err: any) {
+      console.error('Error fetching malla externa:', err.message);
+      throw new Error(`Failed to fetch malla for ${key}`);
     }
   }
 
@@ -65,11 +93,9 @@ export class MallasService {
   }
 
   async persistMalla(carreraKey: string, catalogo: string, cursos: Partial<Course & { codigo?: string }>[]) {
-    // upsert cursos
     await Promise.all(
       cursos.map((c) => this.courseModel.updateOne({ codigo: c.codigo }, { $set: c }, { upsert: true }).exec()),
     );
-    // guardar malla con códigos
     const cursoCodigos = cursos.map((c) => c.codigo);
     return this.mallaModel.findOneAndUpdate(
       { carreraKey, catalogo },
@@ -81,7 +107,6 @@ export class MallasService {
   // GUARDAR PROYECCIÓN 
   async saveProyeccion(rut: string, codCarrera: string, nombre: string, planData: any, planId?: string) {
     
-    // ACTUALIZAR EXISTENTE
     if (planId) {
       return this.proyeccionModel.findByIdAndUpdate(
         planId,
@@ -91,11 +116,10 @@ export class MallasService {
           rut,                      
           codCarrera
         },
-        { new: true } // Devuelve el documento ya actualizado
+        { new: true } 
       ).exec();
     }
 
-    // CREAR NUEVO 
     const existe = await this.proyeccionModel.findOne({ rut, codCarrera, nombre });
     if (existe) {
        return this.proyeccionModel.findOneAndUpdate(
@@ -144,31 +168,64 @@ export class MallasService {
 
     // Método plan optimizado
   generatePlan(data: any): OptimizedPlan { 
-    const { mergedCourses, approvedCodes, creditLimits, manuallyInscribedCodes } = data;
+    const { mergedCourses, approvedCodes, creditLimits, manuallyInscribedCodes,allowSpecialPeriods,includePracticeInNormal,simulatedStatus } = data;
+
+    const algunRecuperable = mergedCourses.find((m: any) => m.curso.permiteRecuperacion === true);
+    
+    if (algunRecuperable) {
+        console.log(`✅ DATO CONFIRMADO: El curso ${algunRecuperable.curso.codigo} (${algunRecuperable.curso.nombre}) tiene permiteRecuperacion: true`);
+    } else {
+        console.log("⚠️ ALERTA: No llegó ningún curso con permiteRecuperacion en true. Revisa getMalla o la BD.");
+    }
 
     const approvedSet = new Set<string>(approvedCodes);
     const manualSet = new Set<string>(manuallyInscribedCodes);
 
+    const failedSet = new Set<string>();
+    if (Array.isArray(mergedCourses)) {
+        mergedCourses.forEach(m => {
+            const status = m.avance?.status || '';
+            if (status === 'REPROBADO') failedSet.add(m.curso.codigo);
+        });
+    }
+    if (simulatedStatus) {
+        Object.entries(simulatedStatus).forEach(([code, status]) => {
+            if (status === 'REPROBADO') {
+                failedSet.add(code);     
+                approvedSet.delete(code); 
+            } else if (status === 'APROBADO') {
+                failedSet.delete(code);
+                approvedSet.add(code);
+            }
+        });
+    }
     const limitsArray = Array.isArray(creditLimits) && creditLimits.length > 0 
         ? creditLimits 
         : [30];
 
 
     const parsePrereqsLogic = (curso: any) => {
-        if (Array.isArray(curso.requisitos)) {
-            return curso.requisitos.map(req => ({ 
-                code: typeof req === 'string' ? req : req.codigo 
-            }));
-        }
-        return [];
-    };
+
+            if (Array.isArray(curso.requisitos)) {
+                return curso.requisitos.map(req => ({ 
+                    code: typeof req === 'string' ? req : req.codigo 
+                }));
+            }
+            if (typeof curso.prereq === 'string' && curso.prereq.trim().length > 0) {
+                return curso.prereq.split(',').map(code => ({ code: code.trim() }));
+            }
+            return [];
+        };
 
     return calculateOptimizedPlan(
       mergedCourses,
       approvedSet,
       parsePrereqsLogic, 
       limitsArray,
-      manualSet
+      manualSet,
+      failedSet,
+      allowSpecialPeriods || false,
+      includePracticeInNormal || false
     );
 
   }

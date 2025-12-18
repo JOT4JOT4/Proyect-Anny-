@@ -25,30 +25,71 @@ export const CurriculumGrid: React.FC<Props> = ({
     );
   }
 
+  const getSemesterNumber = (key: string) => {
+    if (key.includes("Inicial") || key.includes("Ahora")) return 0;
+    const match = key.match(/(\d+)/); 
+    return match ? parseInt(match[0], 10) : 999;
+  };
+
   const groupedByLevel = Array.from(
     new Map(
       decorated.map((item: any) => [item.displayLevel, item])
     ).entries()
   )
-  .sort(([a], [b]) => (parseInt(String(a).replace(/\D/g, '')) || 999) - (parseInt(String(b).replace(/\D/g, '')) || 999));
+  .sort(([keyA], [keyB]) => {
+    const a = String(keyA);
+    const b = String(keyB);
+
+    if (a.includes("Inicial") || a.includes("Ahora")) return -1;
+    if (b.includes("Inicial") || b.includes("Ahora")) return 1;
+
+    const numA = getSemesterNumber(a);
+    const numB = getSemesterNumber(b);
+
+    if (numA !== numB) {
+        return numA - numB;
+    }
+
+    const isSpecialA = a.includes("Periodo") || a.includes("Especial");
+    const isSpecialB = b.includes("Periodo") || b.includes("Especial");
+
+    if (!isSpecialA && isSpecialB) return -1; 
+    if (isSpecialA && !isSpecialB) return 1;  
+
+    return 0;
+  });
+  // ----------------------------------------
 
   return (
     <div className="curriculum-main" style={{ display: 'flex', gap: 8, overflow: 'auto', paddingBottom: 10 }}>
       {groupedByLevel.map(([nivel]) => {
         const nivelCourses = decorated.filter((item: any) => item.displayLevel === String(nivel));
         
-        let semesterTitle = `Sem ${String(nivel)}`;
-        if (String(nivel) === '9999') {
-          semesterTitle = 'Pendientes (Sin Plan)';
-        } else if (isOptimizedView) {
-          semesterTitle = `Plan: Sem ${String(nivel)}`;
+        let semesterTitle = String(nivel);
+        
+        // Formateo de títulos
+        if (!isNaN(Number(semesterTitle)) && Number(semesterTitle) < 900) {
+             semesterTitle = `Sem ${semesterTitle}`;
         }
         
+        if (String(nivel) === '9999' || String(nivel) === 'Pending') {
+          semesterTitle = 'Pendientes (Sin Plan)';
+        } else if (isOptimizedView && !semesterTitle.includes("Plan:")) {
+             if(!semesterTitle.includes("Periodo")) {
+                 semesterTitle = `Plan: ${semesterTitle}`; 
+             }
+        }
+        
+        // Ocultar columnas vacías aprobadas
         if (isOptimizedView && nivelCourses.every(c => c.isAprob)) return null;
+
+        // Colores
+        const isSpecial = String(nivel).includes("Periodo") || String(nivel).includes("Inicial");
+        const headerColor = isSpecial ? '#e91e63' : (isOptimizedView ? '#ff9800' : '#2563eb');
 
         return (
           <section className="curriculum-semester" key={String(nivel)} style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: '60px', minWidth: '80px', flex: '0 0 auto' }}>
-            <h2 className="curriculum-semester-title" style={{ fontSize: 13, fontWeight: 700, color: '#fff', margin: 0, padding: '2px', background: isOptimizedView ? '#ff9800' : '#2563eb', borderRadius: 4, textAlign: 'center' }}>
+            <h2 className="curriculum-semester-title" style={{ fontSize: 13, fontWeight: 700, color: '#fff', margin: 0, padding: '4px', background: headerColor, borderRadius: 4, textAlign: 'center' }}>
               {semesterTitle}
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column' }}>

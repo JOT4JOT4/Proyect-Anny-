@@ -9,6 +9,8 @@ export class Course {
   @Prop() creditos: number;
   @Prop() nivel?: number;
   @Prop({ type: [String], default: [] }) prerequisitos: string[];
+  @Prop({ default: false }) permiteRecuperacion: boolean; 
+  @Prop({ default: false }) esPracticaVerano: boolean; 
 }
 
 export const CourseSchema = SchemaFactory.createForClass(Course);

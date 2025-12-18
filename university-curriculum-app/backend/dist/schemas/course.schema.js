@@ -33,6 +33,14 @@ __decorate([
     (0, mongoose_1.Prop)({ type: [String], default: [] }),
     __metadata("design:type", Array)
 ], Course.prototype, "prerequisitos", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: false }),
+    __metadata("design:type", Boolean)
+], Course.prototype, "permiteRecuperacion", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: false }),
+    __metadata("design:type", Boolean)
+], Course.prototype, "esPracticaVerano", void 0);
 Course = __decorate([
     (0, mongoose_1.Schema)()
 ], Course);
