@@ -44,6 +44,38 @@ export const SimulationControls: React.FC<Props> = (props) => {
      }
   };
 
+  const saveSimulationToBackend = async (items: any[]) => {
+    try {
+      const rut = localStorage.getItem('userRut') || 'unknown-rut';
+      const payload = {
+        rut: rut,
+        nombre: props.currentPlanName || `Simulacion-${new Date().toISOString().split('T')[0]}`,
+        cursos: items,
+      };
+
+      const response = await fetch('/api/simulacro', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Error al guardar simulación');
+      }
+
+      const result = await response.json();
+      props.setToast({ message: `✅ Simulación guardada en BD (ID: ${result.data._id})`, type: 'success' });
+      return true;
+    } catch (err: any) {
+      const msg = err?.message || 'Error desconocido al guardar';
+      props.setToast({ message: `❌ ${msg}`, type: 'error' });
+      return false;
+    }
+  };
+
   const exportSimulated = (format: 'json' | 'csv') => {
     const simulatedInscritoCodes = Object.entries(props.simulatedStatus)
       .filter(([code, status]) => status === 'INSCRITO')
@@ -72,8 +104,21 @@ export const SimulationControls: React.FC<Props> = (props) => {
     let filename: string;
 
     if (format === 'json') {
-      blob = new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' });
-      filename = `simulacion-inscritos-${careerKey}.json`;
+      // Guardar en backend antes de descargar
+      saveSimulationToBackend(items).then(success => {
+        if (success) {
+          // Proceder con descarga local
+          blob = new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' });
+          filename = `simulacion-inscritos-${careerKey}.json`;
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+      });
+      return;
     } else { 
       const rows = [['codigo', 'nombre', 'nivel', 'creditos']];
       items.forEach(it => {

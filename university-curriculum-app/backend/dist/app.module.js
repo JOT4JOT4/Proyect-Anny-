@@ -13,6 +13,7 @@ const auth_module_1 = require("./auth/auth.module");
 const mallas_module_1 = require("./mallas/mallas.module");
 const mongoose_1 = require("@nestjs/mongoose");
 const users_module_1 = require("./users/users.module");
+const simulacro_module_1 = require("./simulacro/simulacro.module");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
@@ -23,6 +24,7 @@ AppModule = __decorate([
             auth_module_1.AuthModule,
             mallas_module_1.MallasModule,
             users_module_1.UsersModule,
+            simulacro_module_1.SimulacroModule,
         ],
         controllers: [],
         providers: [],

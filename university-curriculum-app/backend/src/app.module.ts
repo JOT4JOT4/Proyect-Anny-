@@ -4,6 +4,7 @@ import { AuthModule } from './auth/auth.module';
 import { MallasModule } from './mallas/mallas.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from './users/users.module';
+import { SimulacroModule } from './simulacro/simulacro.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     MallasModule,
     UsersModule,
+    SimulacroModule,
   ],
   controllers: [],
   providers: [],
