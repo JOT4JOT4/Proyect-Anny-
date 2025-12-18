@@ -32,14 +32,6 @@ let MallasService = class MallasService {
         this.avanceModel = avanceModel;
     }
     async getMalla(codigo, catalogo) {
-        if (process.env.LOCAL_MALLAS === 'true') {
-            const carreraKey = `${codigo}-${catalogo}`;
-            const m = await this.mallaModel.findOne({ carreraKey }).lean();
-            if (!m)
-                return [];
-            const cursos = await this.courseModel.find({ codigo: { $in: m.cursos } }).lean();
-            return cursos.map((c) => ({ codigo: c.codigo, asignatura: c.nombre, creditos: c.creditos || 0, nivel: c.nivel || 0, prereq: (c.prerequisitos || []).join(',') }));
-        }
         const key = `${codigo}-${catalogo}`;
         const url = `https://losvilos.ucn.cl/hawaii/api/mallas?${key}`;
         try {
@@ -55,12 +47,6 @@ let MallasService = class MallasService {
         }
     }
     async getAvance(rut, codcarrera) {
-        if (process.env.LOCAL_MALLAS === 'true') {
-            const docs = await this.avanceModel.find({ student: rut, codcarrera }).lean();
-            if (!docs || docs.length === 0)
-                return { error: 'Avance no encontrado' };
-            return docs;
-        }
         const url = `https://puclaro.ucn.cl/eross/avance/avance.php?rut=${encodeURIComponent(rut)}&codcarrera=${encodeURIComponent(codcarrera)}`;
         try {
             const response = await (0, rxjs_1.firstValueFrom)(this.httpService.get(url));

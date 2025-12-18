@@ -1,0 +1,100 @@
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃         🎓 UNIVERSITY CURRICULUM APP - INICIO RÁPIDO      ┃
+┃                                                            ┃
+┃              ⏱️ TIEMPO TOTAL: ~10 MINUTOS                ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+
+1️⃣  INSTALAR DOCKER (si no lo tienes)
+   └─ https://www.docker.com/products/docker-desktop
+   └─ Reinicia tu PC después
+
+
+2️⃣  ABRIR TERMINAL EN LA CARPETA DEL PROYECTO
+   └─ Windows: Click derecho → Abrir en terminal
+   └─ Mac/Linux: Terminal → cd /ruta/al/proyecto
+
+
+3️⃣  LEVANTAR BASE DE DATOS
+   ┌─────────────────────────────────────────┐
+   │ cd backend                              │
+   │ docker-compose up -d                    │
+   │                                         │
+   │ ⏳ Espera 15 segundos...                │
+   └─────────────────────────────────────────┘
+
+
+4️⃣  EJECUTAR BACKEND (Terminal 1)
+   ┌─────────────────────────────────────────┐
+   │ cd backend                              │
+   │ npm install                             │
+   │ npm run start:dev                       │
+   │                                         │
+   │ ✅ Espera hasta ver:                    │
+   │ "Listening on port 3000"                │
+   └─────────────────────────────────────────┘
+
+
+5️⃣  EJECUTAR FRONTEND (Terminal 2)
+   ┌─────────────────────────────────────────┐
+   │ cd frontend                             │
+   │ npm install                             │
+   │ npm run dev                             │
+   │                                         │
+   │ ✅ Espera hasta ver:                    │
+   │ "Local:  http://localhost:5173"         │
+   └─────────────────────────────────────────┘
+
+
+🌐 ACCEDER A LA APP
+   ┌─────────────────────────────────────────┐
+   │ Frontend:    http://localhost:5173      │
+   │ Backend API: http://localhost:3000      │
+   │ BD Admin:    http://localhost:8081      │
+   └─────────────────────────────────────────┘
+
+
+🧪 LOGUEAR CON
+   ┌─────────────────────────────────────────┐
+   │ Email:    pedro@example.com              │
+   │ Password: 1234                          │
+   │                                         │
+   │ O también:                              │
+   │ • maria@example.com / abcd              │
+   │ • ximena@example.com / qwerty           │
+   └─────────────────────────────────────────┘
+
+
+❓ PROBLEMAS?
+   ┌─────────────────────────────────────────┐
+   │ 1. "Puerto 27017 ocupado"               │
+   │    docker rm -f backend-mongo-1         │
+   │    docker-compose up -d                 │
+   │                                         │
+   │ 2. "No conecta al backend"              │
+   │    • Espera 15 seg después de Docker    │
+   │    • Verifica que backend está corriendo│
+   │    • Busca logs de error arriba         │
+   │                                         │
+   │ 3. Más ayuda:                           │
+   │    📖 Abre SETUP.md (documento completo)│
+   │    📚 Ver: SETUP.md → Troubleshooting   │
+   └─────────────────────────────────────────┘
+
+
+✅ TODO LISTO!
+   Ya puedes:
+   ✓ Ver tu malla curricular
+   ✓ Simular cambios de cursos
+   ✓ Generar planes optimizados
+   ✓ Guardar tus planes
+   ✓ Ver tu progreso académico
+
+
+📖 MÁS INFORMACIÓN
+   └─ Lee: SETUP.md (instrucciones detalladas)
+   └─ Lee: README.md (visión general)
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                    ¡A DISFRUTAR!  🚀                        ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛

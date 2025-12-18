@@ -1,5 +1,7 @@
 
 import React, { useState } from "react";
+import EyeIcon from '../../assets/eye-svgrepo-com.svg';
+import EyeIconOff from '../../assets/eyeoff-svgrepo-com.svg';
 
 
 interface UserData {
@@ -17,12 +19,10 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState<{ type: "info" | "success" | "error"; message: string } | null>(null);
 
-  // Form submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus({ type: "info", message: "Verificando credenciales..." });
 
-    // Note: If the external endpoint blocks CORS, use the backend proxy (/auth/login) instead.
     const requestOptions: RequestInit = {
       method: 'GET',
       redirect: 'follow',
@@ -35,18 +35,15 @@ const Login: React.FC = () => {
     try {
       const response = await fetch(url, requestOptions);
 
-      // Try to parse JSON. The external endpoint should return JSON; if not, handle gracefully.
       let data: any = null;
       try {
         data = await response.json();
       } catch (parseErr) {
-        // fallback to text for debugging
         const text = await response.text();
         console.error('Login response not JSON:', text);
         throw new Error('Respuesta inválida del servidor de autenticación');
       }
 
-      // Successful login heuristic: endpoint returns an object with `rut` and `carreras` array
       if (data && data.rut && Array.isArray(data.carreras)) {
         // Save the full user data to localStorage
         localStorage.setItem('userData', JSON.stringify({ rut: data.rut, carreras: data.carreras }));
@@ -86,7 +83,7 @@ const Login: React.FC = () => {
                 style={{ width: "100%", fontSize: 14, padding: "10px 12px", borderRadius: 6, border: "1px solid #d1d5db", boxSizing: "border-box", transition: "border-color 0.2s" }}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="pedro@example.com"
+                placeholder="user@example.com"
               />
             </div>
 
@@ -105,12 +102,12 @@ const Login: React.FC = () => {
                 />
                 <button
                   type="button"
-                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, padding: 0, color: "#6b7280" }}
+                  style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
                   tabIndex={-1}
                   onClick={() => setShowPassword(s => !s)}
                   aria-label="Mostrar/Ocultar contraseña"
                 >
-                  {showPassword ? "🙈" : "👁️"}
+                  <img src={showPassword ? EyeIconOff : EyeIcon} alt={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'} style={{ width: 20, height: 20, display: 'block' }} />
                 </button>
               </div>
             </div>
@@ -133,11 +130,6 @@ const Login: React.FC = () => {
               </div>
             )}
           </form>
-        </div>
-
-        <div style={{ textAlign: "center", fontSize: 12, color: "#6b7280", marginTop: 20 }}>
-          <p style={{ margin: 0 }}>¿Olvidaste tu contraseña? <a href="#" style={{ color: "#2563eb", textDecoration: "none", fontWeight: 600 }}>Recuperar acceso</a></p>
-          <p style={{ margin: "8px 0 0 0", fontSize: 11 }}>&copy; 2025 Universidad. Todos los derechos reservados.</p>
         </div>
       </div>
     </div>

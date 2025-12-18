@@ -253,7 +253,7 @@ export const SimulationControls: React.FC<Props> = (props) => {
           <h4 style={{ margin: 0, fontSize: 14, color: '#2e7d32' }}>
             Plan Optimizado:
             <span style={{ fontWeight: 700, marginLeft: 8 }}>
-              {props.totalOptimizedSemesters} Semestres restantes.
+              {props.totalOptimizedSemesters} Semestres totales.
             </span>
           </h4>
           {props.isOptimizedView && (

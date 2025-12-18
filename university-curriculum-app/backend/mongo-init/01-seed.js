@@ -1,18 +1,11 @@
 // Script executed by MongoDB container on first startup.
 // Inserts sample credentials, courses, mallas and avances for local testing.
 
-const dbName = 'university_curriculum';
-const mydb = db.getSiblingDB(dbName);
+var dbName = 'university_curriculum';
+var mydb = db.getSiblingDB(dbName);
 
+// credentials
 mydb.credentials.insertMany([
-  {
-    email: 'juan@example.com',
-    password: '1234',
-    rut: '111111111',
-    carreras: [
-      { codigo: '8606', nombre: 'ICCI', catalogo: '202320' },
-    ],
-  },
   {
     email: 'maria@example.com',
     password: 'abcd',
@@ -29,10 +22,18 @@ mydb.credentials.insertMany([
       { codigo: '86161', nombre: 'EXAMPLE', catalogo: '202320' },
     ],
   },
+    {
+    email: 'pedro@example.com',
+    password: '1234',
+    rut: '111111111',
+    carreras: [
+      { codigo: '8606', nombre: 'ICCI', catalogo: '202320' },
+    ],
+  },
 ]);
 
 // Courses sample
-const courses = [
+var courses = [
   { codigo: 'DCCB-00107', nombre: 'Álgebra I', creditos: 6, nivel: 1, prerequisitos: ['DDOC-00102', 'SSED-00102'] },
   { codigo: 'DCCB-00106', nombre: 'Cálculo I', creditos: 6, nivel: 1, prerequisitos: ['DAMA-00235'] },
   { codigo: 'ECIN-00704', nombre: 'Algoritmos I', creditos: 6, nivel: 2, prerequisitos: [] },

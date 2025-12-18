@@ -9,7 +9,7 @@ export class User {
   @Prop() nombre: string;
   @Prop({ default: [] }) roles: string[];
   @Prop({ type: Types.ObjectId, ref: 'Malla' }) mallaActiva?: Types.ObjectId;
-  @Prop({ type: Array, default: [] }) proyecciones?: any[]; // ajustar tipo según diseño
+  @Prop({ type: Array, default: [] }) proyecciones?: any[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
