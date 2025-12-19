@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import './styles/Curriculum.css'; 
 
 // Hooks
@@ -32,23 +32,20 @@ const Curriculum: React.FC = () => {
   }, [userData, selectedCareerIndex]);
 
   // Estado de datos procesados 
-  const { merged, courseMap, parsePrereqs, realApprovedCodes, niveles, selectedCareerKey } = useCourseData(selectedCareer, mallas, avances);
+  const { merged, parsePrereqs, realApprovedCodes, niveles, selectedCareerKey } = useCourseData(selectedCareer, mallas, avances);
   
   // Estado de simulación
   const {
     simulatedStatus, simulationMode, setSimulationMode,
     creditLimit, setCreditLimit, currentApprovedCodes,
-    manuallyInscribedCodes, handleSimulateStatus, resetSimulation
+    manuallyInscribedCodes, handleSimulateStatus
   } = useSimulation(realApprovedCodes, merged, parsePrereqs, setToast, selectedCareerKey);
 
   // Estado de optimización
   const {
     isOptimizedView, 
-    setIsOptimizedView,
     optimizedCourseMap, 
     totalOptimizedSemesters,
-    isLoading, 
-    error: optimizationError,
     generateOptimization,
     savePlan,
     loadPlan,

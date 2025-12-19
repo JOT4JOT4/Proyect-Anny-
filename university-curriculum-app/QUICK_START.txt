@@ -1,7 +1,7 @@
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃         🎓 UNIVERSITY CURRICULUM APP - INICIO RÁPIDO      ┃
-┃                                                            ┃
-┃              ⏱️ TIEMPO TOTAL: ~10 MINUTOS                ┃
+┃          UNIVERSITY CURRICULUM APP - INICIO RÁPIDO          ┃
+┃                                                             ┃
+┃               TIEMPO TOTAL: ~10 MINUTOS                     ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 
@@ -20,7 +20,7 @@
    │ cd backend                              │
    │ docker-compose up -d                    │
    │                                         │
-   │ ⏳ Espera 15 segundos...                │
+   │    Espera 15 segundos...                │
    └─────────────────────────────────────────┘
 
 
@@ -30,7 +30,7 @@
    │ npm install                             │
    │ npm run start:dev                       │
    │                                         │
-   │ ✅ Espera hasta ver:                    │
+   │    Espera hasta ver:                    │
    │ "Listening on port 3000"                │
    └─────────────────────────────────────────┘
 
@@ -41,7 +41,7 @@
    │ npm install                             │
    │ npm run dev                             │
    │                                         │
-   │ ✅ Espera hasta ver:                    │
+   │    Espera hasta ver:                    │
    │ "Local:  http://localhost:5173"         │
    └─────────────────────────────────────────┘
 
@@ -56,8 +56,8 @@
 
 🧪 LOGUEAR CON
    ┌─────────────────────────────────────────┐
-   │ Email:    pedro@example.com              │
-   │ Password: 1234                          │
+   │ Email:    pedro@example.com             │
+   │ Password: qwerty                        │
    │                                         │
    │ O también:                              │
    │ • maria@example.com / abcd              │
@@ -77,8 +77,8 @@
    │    • Busca logs de error arriba         │
    │                                         │
    │ 3. Más ayuda:                           │
-   │    📖 Abre SETUP.md (documento completo)│
-   │    📚 Ver: SETUP.md → Troubleshooting   │
+   │       Abre SETUP.md (documento completo)│
+   │       Ver: SETUP.md → Troubleshooting   │
    └─────────────────────────────────────────┘
 
 
@@ -96,5 +96,5 @@
    └─ Lee: README.md (visión general)
 
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃                    ¡A DISFRUTAR!  🚀                        ┃
+┃                        ¡LISTO!                              ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛

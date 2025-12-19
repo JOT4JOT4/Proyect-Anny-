@@ -1,4 +1,3 @@
-import React from "react";
 import Login from "./Curriculum/components/Login";
 import Curriculum from "./Curriculum/Curriculum";
 

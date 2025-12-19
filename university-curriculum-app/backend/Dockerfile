@@ -33,5 +33,5 @@ COPY --from=builder /app/dist ./dist
 # Exponer puerto
 EXPOSE 3000
 
-# Comando para iniciar la aplicación
-CMD ["npm", "start"]
+# Comando para iniciar la aplicación (ejecuta directamente node, sin prestart)
+CMD ["node", "dist/main.js"]

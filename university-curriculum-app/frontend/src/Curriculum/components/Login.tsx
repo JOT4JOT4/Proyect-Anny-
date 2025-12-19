@@ -1,17 +1,8 @@
-
-import React, { useState } from "react";
+import { useState } from "react";
 import EyeIcon from '../../assets/eye-svgrepo-com.svg';
 import EyeIconOff from '../../assets/eyeoff-svgrepo-com.svg';
 
-
-interface UserData {
-  rut: string;
-  carreras: Array<{
-    codigo: string;
-    nombre: string;
-    catalogo: string;
-  }>;
-}
+ 
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");

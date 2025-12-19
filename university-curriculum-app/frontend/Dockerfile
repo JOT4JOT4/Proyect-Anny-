@@ -1,5 +1,6 @@
 # Etapa de construcción
-FROM node:18-alpine AS builder
+# Usar una imagen Debian slim evita problemas con binarios nativos (esbuild, etc.)
+FROM node:18-bullseye-slim AS builder
 
 WORKDIR /app
 

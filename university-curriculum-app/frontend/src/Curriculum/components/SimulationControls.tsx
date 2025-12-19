@@ -78,7 +78,7 @@ export const SimulationControls: React.FC<Props> = (props) => {
 
   const exportSimulated = (format: 'json' | 'csv') => {
     const simulatedInscritoCodes = Object.entries(props.simulatedStatus)
-      .filter(([code, status]) => status === 'INSCRITO')
+      .filter(([, status]) => status === 'INSCRITO')
       .map(([code]) => code);
 
     if (simulatedInscritoCodes.length === 0) {
