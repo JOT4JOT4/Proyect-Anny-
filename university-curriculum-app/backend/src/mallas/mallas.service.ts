@@ -153,12 +153,24 @@ export class MallasService {
         ? creditLimits 
         : [30];
 
-
+    const failedSet = new Set<string>();
+    if (Array.isArray(mergedCourses)) {
+        mergedCourses.forEach(m => {
+            const status = m.avance?.status || m.avance?.result || ''; 
+            const code = String(m.curso.codigo || '').trim();
+            if (status === 'REPROBADO' || status === 'Reprobado') {
+                failedSet.add(code);
+            }
+        });
+    }
     const parsePrereqsLogic = (curso: any) => {
         if (Array.isArray(curso.requisitos)) {
             return curso.requisitos.map(req => ({ 
                 code: typeof req === 'string' ? req : req.codigo 
             }));
+        }
+        if (typeof curso.prereq === 'string' && curso.prereq.trim().length > 0) {
+            return curso.prereq.split(',').map(code => ({ code: code.trim() }));
         }
         return [];
     };
@@ -169,7 +181,8 @@ export class MallasService {
       parsePrereqsLogic, 
       limitsArray,
       manualSet,
-      ignorePracticas || false
+      ignorePracticas || false,
+      failedSet
     );
 
   }
