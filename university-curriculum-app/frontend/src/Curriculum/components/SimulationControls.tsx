@@ -198,7 +198,7 @@ return (
                               Usar 35 en todos 
                           </button>
                           <button 
-                            onClick={() => props.onSetAllLimits && props.onSetAllLimits(35)} style={{ fontSize: 11, padding: '2px 8px', cursor: 'pointer', borderRadius: 4, border: '1px solid #93c5fd', background: '#fff', color: '#2563eb' }}>
+                            onClick={() => props.onSetAllLimits && props.onSetAllLimits(32)} style={{ fontSize: 11, padding: '2px 8px', cursor: 'pointer', borderRadius: 4, border: '1px solid #93c5fd', background: '#fff', color: '#2563eb' }}>
                             Usar 32 en todos (Default)
                           </button>
                           <button onClick={() => props.onSetAllLimits && props.onSetAllLimits(12)} style={{ fontSize: 11, padding: '2px 8px', cursor: 'pointer', borderRadius: 4, border: '1px solid #93c5fd', background: '#fff', color: '#2563eb' }}>
