@@ -24,7 +24,7 @@ export const useOptimization = (
   const [currentPlanName, setCurrentPlanName] = useState<string>('');
   const [savedPlans, setSavedPlans] = useState<SavedPlanSummary[]>([]);
 
-const [semesterLimits, setSemesterLimits] = useState<number[]>(new Array(24).fill(30));
+  const [semesterLimits, setSemesterLimits] = useState<number[]>(new Array(24).fill(32));
 
 
 const handleLimitChange = (index: number, value: number) => {
@@ -45,7 +45,7 @@ useEffect(() => {
     setCurrentPlanId(null);
     setCurrentPlanName('');
     setSavedPlans([]); 
-    setSemesterLimits(new Array(24).fill(30));
+    setSemesterLimits(new Array(24).fill(32));
   }, [selectedCareerKey]);
 
   useEffect(() => {

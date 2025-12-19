@@ -130,11 +130,15 @@ return (
               
               {/* SUGERENCIA VISUAL */}
               <div style={{ marginBottom: 15, padding: '8px 12px', background: '#eff6ff', borderRadius: 6, borderLeft: '4px solid #3b82f6', color: '#1e40af', fontSize: 13 }}>
-                  💡 <strong>Tip:</strong> Configura <strong>35 créditos</strong> para generar el plan <em>Minimizado</em>. Configura <strong>12 créditos</strong> para el plan <em>Maximizado</em>.
+                  💡 <strong>Tip:</strong> Configura <strong>35 créditos en todos</strong> para generar el plan <em>Minimizado</em>. Configura <strong>12 créditos en todos</strong> para el plan <em>Maximizado</em>.
                   {props.onSetAllLimits && (
                       <div style={{ marginTop: 8, display: 'flex', gap: 10 }}>
                           <button onClick={() => props.onSetAllLimits && props.onSetAllLimits(35)} style={{ fontSize: 11, padding: '2px 8px', cursor: 'pointer', borderRadius: 4, border: '1px solid #93c5fd', background: '#fff', color: '#2563eb' }}>
                               Usar 35 en todos 
+                          </button>
+                          <button 
+                            onClick={() => props.onSetAllLimits && props.onSetAllLimits(35)} style={{ fontSize: 11, padding: '2px 8px', cursor: 'pointer', borderRadius: 4, border: '1px solid #93c5fd', background: '#fff', color: '#2563eb' }}>
+                            Usar 32 en todos (Default)
                           </button>
                           <button onClick={() => props.onSetAllLimits && props.onSetAllLimits(12)} style={{ fontSize: 11, padding: '2px 8px', cursor: 'pointer', borderRadius: 4, border: '1px solid #93c5fd', background: '#fff', color: '#2563eb' }}>
                               Usar 12 en todos 
@@ -143,29 +147,57 @@ return (
                   )}
               </div>
 
-              {/* GRILLA DE 24 SEMESTRES */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(60px, 1fr))', gap: 8, maxHeight: '200px', overflowY: 'auto', paddingRight: 5 }}>
-                  {props.semesterLimits.map((limit, idx) => (
-                      <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#fff', padding: 4, borderRadius: 4, border: '1px solid #e5e7eb' }}>
-                          <span style={{ fontSize: 9, fontWeight: 700, color: '#9ca3af', marginBottom: 2 }}>S{idx + 1}</span>
-                          <input 
+              <div style={{ marginTop: 15 }}>
+                      
+                      <style>{`
+                        .semester-grid {
+                          display: grid;
+                          gap: 10px;
+                          /* POR DEFECTO: El navegador decide (mínimo 60px por cuadro) */
+                          grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+                        }
+
+                        @media (min-width: 1000px) {
+                          .semester-grid {
+                            grid-template-columns: repeat(12, 1fr) !important;
+                          }
+                        }
+                      `}</style>
+
+                      <h4 style={{ fontSize: 13, color: '#4b5563', marginBottom: 8 }}>Límites por Semestre:</h4>
+                      
+                      <div className="semester-grid">
+                        {props.semesterLimits.map((limit, idx) => (
+                          <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <label style={{ fontSize: 10, color: '#9ca3af', textAlign: 'center' }}>S{idx + 1}</label>
+                            <input 
                               type="number" 
-                              min="12" max="35"
+                              min="12" max="40"
                               value={limit}
                               onChange={(e) => props.onLimitChange(idx, Number(e.target.value))}
-                              style={{ width: '100%', textAlign: 'center', padding: '2px', borderRadius: 3, border: '1px solid #d1d5db', fontSize: 12, fontWeight: 600, color: '#2563eb' }}
-                          />
+                              style={{ 
+                                padding: '4px 2px', 
+                                borderRadius: 4, 
+                                border: '1px solid #d1d5db', 
+                                textAlign: 'center', 
+                                width: '100%', 
+                                fontSize: 13,
+                                fontWeight: 600,
+                                color: limit !== 32 ? '#0284c7' : '#374151',
+                                backgroundColor: limit !== 32 ? '#f0f9ff' : '#fff'
+                              }} 
+                            />
+                          </div>
+                        ))}
                       </div>
-                  ))}
-              </div>
-
+                    </div>
               {/* BOTÓN GENERAR */}
               <div style={{ marginTop: 15, display: 'flex', justifyContent: 'center' }}>
                   <button
                     onClick={props.onGenerate}
                     style={{ padding: '10px 40px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 700, boxShadow: '0 4px 6px rgba(37,99,235,0.2)', fontSize: 14 }}
                   >
-                    ⚡ GENERAR PLAN OPTIMIZADO
+                     GENERAR PLAN OPTIMIZADO
                   </button>
               </div>
           </div>
