@@ -6,10 +6,9 @@ interface Props {
   isOptimizedView: boolean;
   totalOptimizedSemesters: number;
   
-  // Props actualizadas (sin targetYears)
   semesterLimits: number[];
   onLimitChange: (idx: number, val: number) => void;
-  onSetAllLimits?: (val: number) => void; // Opcional: para botones rápidos
+  onSetAllLimits?: (val: number) => void; 
 
   simulationMode: SimulationMode;
   onSimulationModeChange: (mode: SimulationMode) => void;
@@ -28,12 +27,15 @@ interface Props {
   decoratedMap: Map<string, DecoratedCourse>;
   selectedCareer: Carrera | null;
   setToast: (toast: ToastState) => void;
+
+  ignorePracticas: boolean;          
+  setIgnorePracticas: (v: boolean) => void; 
 }
 
 export const SimulationControls: React.FC<Props> = (props) => {
 
   const [selectedLoadId, setSelectedLoadId] = useState<string>('');
-  const [showConfig, setShowConfig] = useState<boolean>(true); // Estado para colapsar/expandir la config
+  const [showConfig, setShowConfig] = useState<boolean>(true); 
 
   const handleLoadClick = () => {
     if(selectedLoadId) {
@@ -124,9 +126,23 @@ return (
         </div>
       </div>
       
-      {/* CONFIGURACIÓN (Solo si no está optimizado) */}
+      {/* CONFIGURACIÓN */}
       {!props.isOptimizedView && showConfig && (
           <div style={{ marginBottom: 20, padding: 10, background: '#f9fafb', borderRadius: 8, border: '1px solid #f3f4f6' }}>
+
+            <div style={{ display: 'flex', gap: 15, marginBottom: 15, flexWrap: 'wrap' }}>
+          
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer', color: '#374151', fontWeight: 500 }}>
+                  <input 
+                    type="checkbox" 
+                    checked={props.ignorePracticas}
+                    onChange={(e) => props.setIgnorePracticas(e.target.checked)}
+                  />
+                  Ignorar Prácticas (Dejar sin plan)
+                </label>
+
+            </div>
               
               {/* SUGERENCIA VISUAL */}
               <div style={{ marginBottom: 15, padding: '8px 12px', background: '#eff6ff', borderRadius: 6, borderLeft: '4px solid #3b82f6', color: '#1e40af', fontSize: 13 }}>

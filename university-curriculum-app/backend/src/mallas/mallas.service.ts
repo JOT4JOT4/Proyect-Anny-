@@ -91,7 +91,7 @@ export class MallasService {
           rut,                      
           codCarrera
         },
-        { new: true } // Devuelve el documento ya actualizado
+        { new: true } 
       ).exec();
     }
 
@@ -144,7 +144,7 @@ export class MallasService {
 
     // Método plan optimizado
   generatePlan(data: any): OptimizedPlan { 
-    const { mergedCourses, approvedCodes, creditLimits, manuallyInscribedCodes } = data;
+    const { mergedCourses, approvedCodes, creditLimits, manuallyInscribedCodes,ignorePracticas } = data;
 
     const approvedSet = new Set<string>(approvedCodes);
     const manualSet = new Set<string>(manuallyInscribedCodes);
@@ -168,7 +168,8 @@ export class MallasService {
       approvedSet,
       parsePrereqsLogic, 
       limitsArray,
-      manualSet
+      manualSet,
+      ignorePracticas || false
     );
 
   }

@@ -11,28 +11,46 @@ export function calculateOptimizedPlan(
     approvedCodes: Set<string>,
     parsePrereqs: (curso: any) => Array<{ code: string; name?: string }>,
     creditLimits: number[],
-    manuallyInscribedCodes: Set<string>
+    manuallyInscribedCodes: Set<string>,
+    ignorePracticas: boolean 
 ): OptimizedPlan {
-    
+
+    const universeCodes = new Set<string>(
+        mergedCourses.map(m => String(m.curso.codigo || m.curso.code || '').trim())
+    );
+
     const plan: OptimizedPlan = {};
+    const takenCourses = new Set(approvedCodes);
     
+    const esCursoPractica = (nombre: string) => /pr[áa]ctica/i.test(nombre || '');
+
     const pendingCourses = mergedCourses
         .filter(m => {
-            const cursoCodigo = String(m.curso.codigo || m.curso.code || m.curso.id || '').trim();
-            return !approvedCodes.has(cursoCodigo);
+            const cursoCodigo = String(m.curso.codigo || m.curso.code || '').trim();
+            const nombre = m.curso.nombre || m.curso.asignatura || '';
+
+            if (approvedCodes.has(cursoCodigo)) return false;
+
+            if (ignorePracticas && esCursoPractica(nombre)) return false;
+
+            return true;
         })
         .map(m => m.curso); 
 
-    const takenCourses = new Set(approvedCodes);
-
     let currentSemester = 1;
     
+
     const canTake = (curso: any) => {
-        const prereqs = parsePrereqs(curso);
-        return prereqs.every(req => takenCourses.has(req.code));
+        const rawReqs = parsePrereqs(curso);
+        const validReqs = rawReqs.filter(req => {
+            const cleanCode = String(req.code).trim();
+            return universeCodes.has(cleanCode);
+        });
+
+        return validReqs.every(req => takenCourses.has(req.code));
     };
 
-    //Ciclo de Planificación Semestre a Semestre
+
     while (pendingCourses.length > 0) {
         const semesterKey = `Semestre ${currentSemester}`;
         plan[semesterKey] = [];
@@ -40,33 +58,31 @@ export function calculateOptimizedPlan(
         let assignedInThisSemester = false;
 
         const rawLimit = creditLimits[currentSemester - 1] 
-                      || creditLimits[creditLimits.length - 1] 
-                      || 30;
+                       || creditLimits[creditLimits.length - 1] 
+                       || 30;
 
-        const currentMaxCredits = Math.min(35, Math.max(12, rawLimit));
+        const currentMaxCredits = Math.min(40, Math.max(12, rawLimit));
 
         if(currentSemester === 1 && manuallyInscribedCodes.size > 0){
             const fullInscribedCourses: any[] = [];
             manuallyInscribedCodes.forEach(code => {
                 const course = pendingCourses.find(p => {
-                    const pCode = String(p.codigo || p.code || p.id || '').trim();
+                    const pCode = String(p.codigo || p.code || '').trim();
                     return pCode === code;
                 });
-                if (course) {
-                    fullInscribedCourses.push(course);
-                }
+                if (course) fullInscribedCourses.push(course);
             });
 
             for (const course of fullInscribedCourses) {
                 const credits = parseInt(course.creditos || 0, 10);
-                const courseCode = String(course.codigo || course.code || course.id || '').trim();
+                const courseCode = String(course.codigo || course.code || '').trim();
 
                 if (currentCredits + credits <= currentMaxCredits) {
                     plan[semesterKey].push({
                         codigo: courseCode,
-                        nombre: course.asignatura || course.nombre || course.courseName,
+                        nombre: course.asignatura || course.nombre,
                         creditos: credits,
-                        nivel: String(course.nivel || course.level || course.semestre || ''),
+                        nivel: String(course.nivel || course.semestre || ''),
                     });
 
                     currentCredits += credits;
@@ -74,32 +90,21 @@ export function calculateOptimizedPlan(
                     takenCourses.add(courseCode);
                     
                     const index = pendingCourses.indexOf(course);
-                    if (index > -1) {
-                        pendingCourses.splice(index, 1);
-                    }
-                } else {
-                    console.warn(`El curso ${courseCode} (inscrito manualmente) no se pudo planificar por límite de créditos.`);
+                    if (index > -1) pendingCourses.splice(index, 1);
                 }
             }
         }
+
+
         let shouldReevaluateCandidates = true;
 
         while (shouldReevaluateCandidates) {
             shouldReevaluateCandidates = false;
+
             let candidates = pendingCourses.filter(c => canTake(c));
 
-            if (candidates.length === 0 && pendingCourses.length > 0 && plan[semesterKey].length === 0) {
-                console.error(`--- Bloqueo Crítico en Semestre ${currentSemester} ---`);
-                const blockedCourse = pendingCourses[0];
-                if (blockedCourse) {
-                    const required = parsePrereqs(blockedCourse);
-                    const missingReqs = required.filter(req => !takenCourses.has(req.code));
 
-                    console.error("CURSO BLOQUEADO:", blockedCourse.asignatura || blockedCourse.codigo);
-                    console.error("REQUISITOS FALTANTES:", missingReqs.map(m => m.code));
-                }
-                console.error("-------------------------------------------------");
-                console.error(`Error en Semestre ${currentSemester}: Hay cursos pendientes que nunca serán elegibles. Deteniendo plan.`);
+            if (candidates.length === 0 && pendingCourses.length > 0 && plan[semesterKey].length === 0) {
                 break; 
             }
 
@@ -114,15 +119,15 @@ export function calculateOptimizedPlan(
             for (let i = 0; i < candidates.length; i++) {
                 const course = candidates[i];
                 const credits = parseInt(course.creditos || 0, 10); 
-                const courseCode = String(course.codigo || course.code || course.id || '').trim();
+                const courseCode = String(course.codigo || course.code || '').trim();
                 
                 if (currentCredits + credits <= currentMaxCredits) {
                     
                     plan[semesterKey].push({
                         codigo: courseCode,
-                        nombre: course.asignatura || course.nombre || course.courseName,
+                        nombre: course.asignatura || course.nombre,
                         creditos: credits,
-                        nivel: String(course.nivel || course.level || course.semestre || ''),
+                        nivel: String(course.nivel || course.semestre || ''),
                     });
 
                     currentCredits += credits;
@@ -131,9 +136,7 @@ export function calculateOptimizedPlan(
                     takenCourses.add(courseCode);
                     
                     const index = pendingCourses.indexOf(course);
-                    if (index > -1) {
-                        pendingCourses.splice(index, 1);
-                    }
+                    if (index > -1) pendingCourses.splice(index, 1);
                     
                     shouldReevaluateCandidates = true; 
                     break;
@@ -146,11 +149,8 @@ export function calculateOptimizedPlan(
         }
 
         if (!assignedInThisSemester && pendingCourses.length > 0) {
-            if (currentSemester > 20) break;
-            console.warn(`Planificación detenida: No se pudo asignar ningún curso al Semestre ${currentSemester}.`);
-            if (plan[semesterKey].length === 0) {
-                delete plan[semesterKey]; 
-            }
+            if (currentSemester > 25) break; 
+            if (plan[semesterKey].length === 0) delete plan[semesterKey]; 
             break;
         } else if (assignedInThisSemester) {
             currentSemester++;

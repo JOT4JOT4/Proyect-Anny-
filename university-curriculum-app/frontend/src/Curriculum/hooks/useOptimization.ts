@@ -23,7 +23,7 @@ export const useOptimization = (
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
   const [currentPlanName, setCurrentPlanName] = useState<string>('');
   const [savedPlans, setSavedPlans] = useState<SavedPlanSummary[]>([]);
-
+  const [ignorePracticas, setIgnorePracticas] = useState<boolean>(false);
   const [semesterLimits, setSemesterLimits] = useState<number[]>(new Array(24).fill(32));
 
 
@@ -78,7 +78,8 @@ const generateOptimization = async () => {
           mergedCourses: merged,
           creditLimits: semesterLimits, 
           approvedCodes: Array.from(currentApprovedCodes),
-          manuallyInscribedCodes: Array.from(manuallyInscribedCodes)
+          manuallyInscribedCodes: Array.from(manuallyInscribedCodes),
+          ignorePracticas: ignorePracticas,
         }),
       });
 
@@ -242,6 +243,8 @@ const generateOptimization = async () => {
     currentPlanId,
     semesterLimits,
     handleLimitChange,
-    setAllLimits
+    setAllLimits,
+    ignorePracticas,      
+    setIgnorePracticas,
   };
 };
