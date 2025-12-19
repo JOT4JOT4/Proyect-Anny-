@@ -24,7 +24,7 @@ Accede a: http://localhost:5173 (Frontend) | http://localhost:3000 (Backend API)
 
 ### 🧪 Credenciales de Prueba
 ```
-Email: pedro@example.com       | Contraseña: 1234
+Email: pedro@example.com       | Contraseña: qwerty
 Email: maria@example.com      | Contraseña: abcd
 Email: ximena@example.com     | Contraseña: qwerty
 ```

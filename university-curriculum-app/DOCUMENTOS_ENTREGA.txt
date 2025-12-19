@@ -66,7 +66,7 @@
 
 
 🧪 CREDENCIALES DE PRUEBA:
-   Email: pedro@example.com       | Password: 1234
+   Email: pedro@example.com       | Password: qwerty
    Email: maria@example.com      | Password: abcd
    Email: ximena@example.com     | Password: qwerty
 
@@ -123,12 +123,6 @@ R: ~10 minutos (en tu primera vez).
 P: "¿Puedo cambiar los usuarios de prueba?"
 R: Sí. Edita backend/mongo-init/01-seed.js y reinicia Docker.
 
-P: "¿Funciona sin internet?"
-R: Sí. Por defecto funciona local. Cambiar si conectas APIs reales.
-
-P: "¿Es segura para producción?"
-R: Como desarrollo sí. Para producción, cambiar flags y configurar auth.
-
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -139,5 +133,5 @@ Estado: ✅ LISTO PARA USAR
 Para comenzar: Lee QUICK_START.txt o SETUP.md
 
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃             ¡Éxito! La aplicación está lista. 🚀              ┃
+┃             ¡Éxito! La aplicación está lista.                   ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛

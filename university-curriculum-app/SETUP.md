@@ -63,7 +63,7 @@ La aplicación viene precargada con 3 usuarios de ejemplo. Usa cualquiera:
 
 | Email | Contraseña | RUT | Carreras |
 |-------|------------|-----|----------|
-| `pedro@example.com` | `1234` | 111111111 | ICCI (8606) |
+| `pedro@example.com` | `qwerty` | 111111111 | ICCI (8606) |
 | `maria@example.com` | `abcd` | 222222222 | ITI (8266) |
 | `ximena@example.com` | `qwerty` | 333333333 | EXAMPLE (86161) |
 

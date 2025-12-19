@@ -37,7 +37,7 @@ const Curriculum: React.FC = () => {
   // Estado de simulación
   const {
     simulatedStatus, simulationMode, setSimulationMode,
-    creditLimit, setCreditLimit, currentApprovedCodes,
+    currentApprovedCodes,
     manuallyInscribedCodes, handleSimulateStatus
   } = useSimulation(realApprovedCodes, merged, parsePrereqs, setToast, selectedCareerKey);
 

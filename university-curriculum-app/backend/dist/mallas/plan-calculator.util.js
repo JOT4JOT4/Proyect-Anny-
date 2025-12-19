@@ -1,60 +1,95 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.calculateOptimizedPlan = void 0;
-function calculateOptimizedPlan(mergedCourses, approvedCodes, parsePrereqs, creditLimits, manuallyInscribedCodes) {
+function calculateOptimizedPlan(mergedCourses, approvedCodes, parsePrereqs, creditLimits, manuallyInscribedCodes, ignorePracticas, failedCodes) {
+    const universeCodes = new Set(mergedCourses.map(m => String(m.curso.codigo || m.curso.code || '').trim()));
     const plan = {};
+    const takenCourses = new Set(approvedCodes);
+    const esCursoPracticaNombre = (nombre) => /pr[áa]ctica/i.test(nombre || '');
     const pendingCourses = mergedCourses
         .filter(m => {
-        const cursoCodigo = String(m.curso.codigo || m.curso.code || m.curso.id || '').trim();
-        return !approvedCodes.has(cursoCodigo);
+        const cursoCodigo = String(m.curso.codigo || m.curso.code || '').trim();
+        const nombre = m.curso.nombre || m.curso.asignatura || '';
+        if (approvedCodes.has(cursoCodigo))
+            return false;
+        if (ignorePracticas && esCursoPracticaNombre(nombre))
+            return false;
+        return true;
     })
         .map(m => m.curso);
-    const takenCourses = new Set(approvedCodes);
     let currentSemester = 1;
     const canTake = (curso) => {
-        const prereqs = parsePrereqs(curso);
-        return prereqs.every(req => takenCourses.has(req.code));
+        const rawReqs = parsePrereqs(curso);
+        const validReqs = rawReqs.filter(req => {
+            const cleanCode = String(req.code).trim();
+            return universeCodes.has(cleanCode);
+        });
+        return validReqs.every(req => takenCourses.has(req.code));
+    };
+    const runSummerPhase = (semesterLabel) => {
+        const summerCourses = [];
+        if (!ignorePracticas) {
+            const practiceCandidates = pendingCourses.filter(c => {
+                return c.esPracticaVerano && canTake(c);
+            });
+            practiceCandidates.forEach(p => summerCourses.push({ ...p, esPractica: true }));
+        }
+        if (summerCourses.length > 0) {
+            plan[semesterLabel] = [];
+            for (const course of summerCourses) {
+                const code = String(course.codigo || '').trim();
+                if (takenCourses.has(code))
+                    continue;
+                plan[semesterLabel].push({
+                    codigo: code,
+                    nombre: course.nombre || course.asignatura,
+                    creditos: parseInt(course.creditos || 0, 10),
+                    nivel: String(course.nivel || ''),
+                    esPractica: true
+                });
+                takenCourses.add(code);
+                const idx = pendingCourses.findIndex(c => String(c.codigo || '').trim() === code);
+                if (idx > -1)
+                    pendingCourses.splice(idx, 1);
+            }
+        }
     };
     while (pendingCourses.length > 0) {
         const semesterKey = `Semestre ${currentSemester}`;
         plan[semesterKey] = [];
         let currentCredits = 0;
         let assignedInThisSemester = false;
+        const newlyTakenCodes = [];
         const rawLimit = creditLimits[currentSemester - 1]
             || creditLimits[creditLimits.length - 1]
             || 30;
-        const currentMaxCredits = Math.min(35, Math.max(12, rawLimit));
+        const currentMaxCredits = Math.min(40, Math.max(12, rawLimit));
         if (currentSemester === 1 && manuallyInscribedCodes.size > 0) {
             const fullInscribedCourses = [];
             manuallyInscribedCodes.forEach(code => {
                 const course = pendingCourses.find(p => {
-                    const pCode = String(p.codigo || p.code || p.id || '').trim();
+                    const pCode = String(p.codigo || p.code || '').trim();
                     return pCode === code;
                 });
-                if (course) {
+                if (course)
                     fullInscribedCourses.push(course);
-                }
             });
             for (const course of fullInscribedCourses) {
                 const credits = parseInt(course.creditos || 0, 10);
-                const courseCode = String(course.codigo || course.code || course.id || '').trim();
+                const courseCode = String(course.codigo || course.code || '').trim();
                 if (currentCredits + credits <= currentMaxCredits) {
                     plan[semesterKey].push({
                         codigo: courseCode,
-                        nombre: course.asignatura || course.nombre || course.courseName,
+                        nombre: course.asignatura || course.nombre,
                         creditos: credits,
-                        nivel: String(course.nivel || course.level || course.semestre || ''),
+                        nivel: String(course.nivel || course.semestre || ''),
                     });
                     currentCredits += credits;
                     assignedInThisSemester = true;
-                    takenCourses.add(courseCode);
+                    newlyTakenCodes.push(courseCode);
                     const index = pendingCourses.indexOf(course);
-                    if (index > -1) {
+                    if (index > -1)
                         pendingCourses.splice(index, 1);
-                    }
-                }
-                else {
-                    console.warn(`El curso ${courseCode} (inscrito manualmente) no se pudo planificar por límite de créditos.`);
                 }
             }
         }
@@ -63,19 +98,23 @@ function calculateOptimizedPlan(mergedCourses, approvedCodes, parsePrereqs, cred
             shouldReevaluateCandidates = false;
             let candidates = pendingCourses.filter(c => canTake(c));
             if (candidates.length === 0 && pendingCourses.length > 0 && plan[semesterKey].length === 0) {
-                console.error(`--- Bloqueo Crítico en Semestre ${currentSemester} ---`);
-                const blockedCourse = pendingCourses[0];
-                if (blockedCourse) {
-                    const required = parsePrereqs(blockedCourse);
-                    const missingReqs = required.filter(req => !takenCourses.has(req.code));
-                    console.error("CURSO BLOQUEADO:", blockedCourse.asignatura || blockedCourse.codigo);
-                    console.error("REQUISITOS FALTANTES:", missingReqs.map(m => m.code));
-                }
-                console.error("-------------------------------------------------");
-                console.error(`Error en Semestre ${currentSemester}: Hay cursos pendientes que nunca serán elegibles. Deteniendo plan.`);
                 break;
             }
             candidates.sort((a, b) => {
+                const codeA = String(a.codigo || '').trim();
+                const codeB = String(b.codigo || '').trim();
+                const manualA = manuallyInscribedCodes.has(codeA);
+                const manualB = manuallyInscribedCodes.has(codeB);
+                if (manualA && !manualB)
+                    return -1;
+                if (!manualA && manualB)
+                    return 1;
+                const failedA = failedCodes.has(codeA);
+                const failedB = failedCodes.has(codeB);
+                if (failedA && !failedB)
+                    return -1;
+                if (!failedA && failedB)
+                    return 1;
                 const levelA = parseInt(a.nivel || a.semestre || 999, 10);
                 const levelB = parseInt(b.nivel || b.semestre || 999, 10);
                 return levelA - levelB;
@@ -83,23 +122,25 @@ function calculateOptimizedPlan(mergedCourses, approvedCodes, parsePrereqs, cred
             let courseWasAssignedInThisPass = false;
             for (let i = 0; i < candidates.length; i++) {
                 const course = candidates[i];
+                if (course.esPracticaVerano && !ignorePracticas) {
+                    continue;
+                }
                 const credits = parseInt(course.creditos || 0, 10);
-                const courseCode = String(course.codigo || course.code || course.id || '').trim();
+                const courseCode = String(course.codigo || course.code || '').trim();
                 if (currentCredits + credits <= currentMaxCredits) {
                     plan[semesterKey].push({
                         codigo: courseCode,
-                        nombre: course.asignatura || course.nombre || course.courseName,
+                        nombre: course.asignatura || course.nombre,
                         creditos: credits,
-                        nivel: String(course.nivel || course.level || course.semestre || ''),
+                        nivel: String(course.nivel || course.semestre || ''),
                     });
                     currentCredits += credits;
                     assignedInThisSemester = true;
                     courseWasAssignedInThisPass = true;
-                    takenCourses.add(courseCode);
+                    newlyTakenCodes.push(courseCode);
                     const index = pendingCourses.indexOf(course);
-                    if (index > -1) {
+                    if (index > -1)
                         pendingCourses.splice(index, 1);
-                    }
                     shouldReevaluateCandidates = true;
                     break;
                 }
@@ -108,16 +149,19 @@ function calculateOptimizedPlan(mergedCourses, approvedCodes, parsePrereqs, cred
                 shouldReevaluateCandidates = false;
             }
         }
-        if (!assignedInThisSemester && pendingCourses.length > 0) {
-            if (currentSemester > 20)
+        newlyTakenCodes.forEach(code => takenCourses.add(code));
+        runSummerPhase(`Verano (Post-Sem ${currentSemester})`);
+        const summerKey = `Verano (Post-Sem ${currentSemester})`;
+        const semEmpty = !plan[semesterKey] || plan[semesterKey].length === 0;
+        const summerEmpty = !plan[summerKey] || plan[summerKey].length === 0;
+        if (!assignedInThisSemester && pendingCourses.length > 0 && summerEmpty) {
+            if (currentSemester > 25)
                 break;
-            console.warn(`Planificación detenida: No se pudo asignar ningún curso al Semestre ${currentSemester}.`);
-            if (plan[semesterKey].length === 0) {
+            if (semEmpty)
                 delete plan[semesterKey];
-            }
             break;
         }
-        else if (assignedInThisSemester) {
+        else if (assignedInThisSemester || !summerEmpty) {
             currentSemester++;
         }
     }

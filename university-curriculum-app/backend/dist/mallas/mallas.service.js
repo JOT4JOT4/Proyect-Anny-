@@ -103,21 +103,34 @@ let MallasService = class MallasService {
         return this.proyeccionModel.findByIdAndDelete(id).exec();
     }
     generatePlan(data) {
-        const { mergedCourses, approvedCodes, creditLimits, manuallyInscribedCodes } = data;
+        const { mergedCourses, approvedCodes, creditLimits, manuallyInscribedCodes, ignorePracticas } = data;
         const approvedSet = new Set(approvedCodes);
         const manualSet = new Set(manuallyInscribedCodes);
         const limitsArray = Array.isArray(creditLimits) && creditLimits.length > 0
             ? creditLimits
             : [30];
+        const failedSet = new Set();
+        if (Array.isArray(mergedCourses)) {
+            mergedCourses.forEach(m => {
+                const status = m.avance?.status || m.avance?.result || '';
+                const code = String(m.curso.codigo || '').trim();
+                if (status === 'REPROBADO' || status === 'Reprobado') {
+                    failedSet.add(code);
+                }
+            });
+        }
         const parsePrereqsLogic = (curso) => {
             if (Array.isArray(curso.requisitos)) {
                 return curso.requisitos.map(req => ({
                     code: typeof req === 'string' ? req : req.codigo
                 }));
             }
+            if (typeof curso.prereq === 'string' && curso.prereq.trim().length > 0) {
+                return curso.prereq.split(',').map(code => ({ code: code.trim() }));
+            }
             return [];
         };
-        return (0, plan_calculator_util_1.calculateOptimizedPlan)(mergedCourses, approvedSet, parsePrereqsLogic, limitsArray, manualSet);
+        return (0, plan_calculator_util_1.calculateOptimizedPlan)(mergedCourses, approvedSet, parsePrereqsLogic, limitsArray, manualSet, ignorePracticas || false, failedSet);
     }
 };
 MallasService = __decorate([
