@@ -1,8 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.calculateOptimizedPlan = void 0;
-function calculateOptimizedPlan(mergedCourses, approvedCodes, parsePrereqs, creditLimit, manuallyInscribedCodes) {
-    const MAX_CREDITS_PER_SEMESTER = Math.min(35, Math.max(12, creditLimit));
+function calculateOptimizedPlan(mergedCourses, approvedCodes, parsePrereqs, creditLimits, manuallyInscribedCodes) {
     const plan = {};
     const pendingCourses = mergedCourses
         .filter(m => {
@@ -21,6 +20,10 @@ function calculateOptimizedPlan(mergedCourses, approvedCodes, parsePrereqs, cred
         plan[semesterKey] = [];
         let currentCredits = 0;
         let assignedInThisSemester = false;
+        const rawLimit = creditLimits[currentSemester - 1]
+            || creditLimits[creditLimits.length - 1]
+            || 30;
+        const currentMaxCredits = Math.min(35, Math.max(12, rawLimit));
         if (currentSemester === 1 && manuallyInscribedCodes.size > 0) {
             const fullInscribedCourses = [];
             manuallyInscribedCodes.forEach(code => {
@@ -35,7 +38,7 @@ function calculateOptimizedPlan(mergedCourses, approvedCodes, parsePrereqs, cred
             for (const course of fullInscribedCourses) {
                 const credits = parseInt(course.creditos || 0, 10);
                 const courseCode = String(course.codigo || course.code || course.id || '').trim();
-                if (currentCredits + credits <= MAX_CREDITS_PER_SEMESTER) {
+                if (currentCredits + credits <= currentMaxCredits) {
                     plan[semesterKey].push({
                         codigo: courseCode,
                         nombre: course.asignatura || course.nombre || course.courseName,
@@ -82,7 +85,7 @@ function calculateOptimizedPlan(mergedCourses, approvedCodes, parsePrereqs, cred
                 const course = candidates[i];
                 const credits = parseInt(course.creditos || 0, 10);
                 const courseCode = String(course.codigo || course.code || course.id || '').trim();
-                if (currentCredits + credits <= MAX_CREDITS_PER_SEMESTER) {
+                if (currentCredits + credits <= currentMaxCredits) {
                     plan[semesterKey].push({
                         codigo: courseCode,
                         nombre: course.asignatura || course.nombre || course.courseName,
@@ -106,6 +109,8 @@ function calculateOptimizedPlan(mergedCourses, approvedCodes, parsePrereqs, cred
             }
         }
         if (!assignedInThisSemester && pendingCourses.length > 0) {
+            if (currentSemester > 20)
+                break;
             console.warn(`Planificación detenida: No se pudo asignar ningún curso al Semestre ${currentSemester}.`);
             if (plan[semesterKey].length === 0) {
                 delete plan[semesterKey];

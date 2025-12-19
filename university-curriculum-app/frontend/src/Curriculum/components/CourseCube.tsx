@@ -71,8 +71,8 @@ export const CourseCube: React.FC<Props> = ({
       </div>
 
       <div style={{ fontSize: 8, padding: '2px 4px', borderRadius: 3, background: statusBgColor, color: statusTextColor, textAlign: 'center', fontWeight: 600, marginTop: 6 }}>
-        {isAprob ? `✅ ${isRealApproved ? 'APROBADO REAL' : 'APROBADO SIM'}` :
-          isReprob ? `❌ ${isRealApproved ? 'REPROBADO REAL' : 'REPROBADO SIM'}` :
+        {isAprob ? `✅ ${isRealApproved ? 'APROBADO' : 'APROBADO SIM'}` :
+          isReprob ? `❌ ${isRealApproved ? 'REPROBADO' : 'REPROBADO SIM'}` :
           isInscrito ? `📖 INSCRITO ${isRealApproved ? 'REAL' : 'SIM'}` :
           '— PENDIENTE'}
       </div>
@@ -84,7 +84,7 @@ export const CourseCube: React.FC<Props> = ({
             disabled={currentSimulatedStatus === 'INSCRITO'}
             style={{ padding: '2px 5px', fontSize: 9, borderRadius: 3, cursor: 'pointer', border: 'none', background: currentSimulatedStatus === 'INSCRITO' ? '#00bcd4' : '#e0f7fa', color: currentSimulatedStatus === 'INSCRITO' ? '#fff' : '#000', fontWeight: 600 }}
           >
-            Inscribir
+            Priorizar
           </button>
 
           {simulationMode === 'freePlay' && (

@@ -53,11 +53,15 @@ const Curriculum: React.FC = () => {
     deletePlan,
     savedPlans,
     currentPlanName,
-    currentPlanId
+    currentPlanId,
+    semesterLimits,
+    handleLimitChange,
+    setAllLimits,
+    ignorePracticas,      
+    setIgnorePracticas
   } = useOptimization(
       merged, 
       currentApprovedCodes, 
-      creditLimit, 
       manuallyInscribedCodes, 
       selectedCareerKey,
       userData?.rut || '',           
@@ -123,8 +127,6 @@ const Curriculum: React.FC = () => {
             <SimulationControls
               isOptimizedView={isOptimizedView}
               totalOptimizedSemesters={totalOptimizedSemesters}
-              creditLimit={creditLimit}
-              onCreditLimitChange={setCreditLimit}
               simulationMode={simulationMode}
               onSimulationModeChange={setSimulationMode}
               
@@ -138,11 +140,17 @@ const Curriculum: React.FC = () => {
               currentPlanName={currentPlanName}
               currentPlanId={currentPlanId}
 
+              onSetAllLimits={setAllLimits}
+              semesterLimits={semesterLimits}
+              onLimitChange={handleLimitChange}
+
               /* Props de Exportación */
               simulatedStatus={simulatedStatus}
               decoratedMap={decoratedMap}
               selectedCareer={selectedCareer}
               setToast={setToast}
+              ignorePracticas={ignorePracticas}
+              setIgnorePracticas={setIgnorePracticas}
             />
           
             <FilterBar

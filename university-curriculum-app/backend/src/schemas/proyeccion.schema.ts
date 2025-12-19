@@ -21,7 +21,6 @@ export class Proyeccion {
   @Prop({ type: Object, required: true }) 
   matrizResultante: Record<string, any[]>; 
 }
-
 export const ProyeccionSchema = SchemaFactory.createForClass(Proyeccion);
 
 // No puede tener dos planes con el MISMO nombre en la MISMA carrera.
